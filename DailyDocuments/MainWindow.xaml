@@ -3,7 +3,6 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:Properties="clr-namespace:DailyDocuments.Properties"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:local="clr-namespace:DailyDocuments"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
     mc:Ignorable="d"
@@ -25,6 +24,7 @@
     </Window.Resources>
 
     <Grid x:Name="grid1">
+        <!--#region Row and Column definitions-->
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="10" />
             <ColumnDefinition Width="*" />
@@ -36,7 +36,9 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
+        <!--#endregion-->
 
+        <!--#region Menu and date picker-->
         <DockPanel
             Grid.Row="0"
             Grid.Column="1"
@@ -148,7 +150,9 @@
             TextAlignment="Center"
             TimePickerVisibility="Hidden"
             ValueChanged="XceedDateTime_ValueChanged" />
+        <!--#endregion-->
 
+        <!--#region ListView-->
         <ListView x:Name="lbDocs"
             Grid.Row="2"
             Grid.Column="1"
@@ -171,8 +175,7 @@
                             Width="20"
                             Margin="0,0,5,0"
                             Source="{Binding FileIcon}"
-                            Visibility="{Binding ShowFileIcons, Source={x:Static Properties:Settings.Default},
-                            Converter={StaticResource BoolVisConverter}}" />
+                            Visibility="{Binding ShowFileIcons, Source={x:Static Properties:Settings.Default}, Converter={StaticResource BoolVisConverter}}" />
                         <TextBlock Text="{Binding Title}" ToolTip="{Binding DocumentPath}" />
 
                     </StackPanel>
@@ -186,7 +189,9 @@
                 </ContextMenu>
             </ListView.ContextMenu>
         </ListView>
+        <!--#endregion-->
 
+        <!--#region Buttons-->
         <DockPanel
             Grid.Row="3"
             Grid.Column="1"
@@ -211,5 +216,6 @@
                 IsDefault="True"
                 Style="{DynamicResource RoundCornerGreen}" />
         </DockPanel>
+        <!--#endregion-->
     </Grid>
 </Window>

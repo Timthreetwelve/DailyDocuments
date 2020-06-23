@@ -10,7 +10,7 @@ using System.Windows;
 [assembly: AssemblyTitle("DailyDocuments")]
 [assembly: AssemblyDescription("Opens daily documents")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("TimCo")]
+[assembly: AssemblyCompany("T_K")]
 [assembly: AssemblyProduct("DailyDocuments")]
 [assembly: AssemblyCopyright("Copyright ©  Tim Kennedy 2020")]
 [assembly: AssemblyTrademark("")]
@@ -51,5 +51,5 @@ using System.Windows;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("0.1.16.0")]
-[assembly: AssemblyFileVersion("0.1.16.0")]
+[assembly: AssemblyVersion("0.2.1.1545")]
+[assembly: AssemblyFileVersion("0.2.1.1545")]

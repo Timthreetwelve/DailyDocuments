@@ -13,8 +13,16 @@ software on the first day of the month? DailyDocuments can do this and more.
 How DailyDocuments Works
 ========================
 
-DailyDocuments 
+DailyDocuments reads a list of file names or applications from an XML file and displays them in a
+scrollable window. The items in the list can be checked and opened together by clicking the Open Checked
+button. Additionally, the list can contain scheduling information that will preselect items based on
+the current date.
 
+The File menu has options to Edit the XML file and to Reload the XML file. After changes have been
+made to the XML file it will need to be reloaded or the application can be restarted. The format of
+the XML file and the Day Codes for scheduling the list items are discussed in the following sections.
+
+To the right of the menu items there is a day picker that can be used to change the date.
 
 
 
@@ -101,6 +109,13 @@ YOu can select the amount of delay between opening successive documents.
 You can choose from three font sizes.
 
 Note that settings are saved when the application is closed.
+
+
+Automating Daily Documents
+==========================
+
+You can automate DailyDocuments by adding a task to Windows Task Scheduler, specifying the path to the
+DailyDocuments executable in the Program field and /automatic in the Arguments field.
 
 
 

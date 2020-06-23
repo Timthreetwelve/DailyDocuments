@@ -65,6 +65,8 @@ namespace DailyDocuments
                 Properties.Settings.Default.Upgrade();
                 Properties.Settings.Default.SettingsUpgradeRequired = false;
                 Properties.Settings.Default.Save();
+                // CleanupPrevSettings must be called AFTER settings Upgrade and Save
+                CleanUp.CleanupPrevSettings();
             }
 
             // Window position
