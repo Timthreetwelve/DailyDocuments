@@ -3,7 +3,6 @@ using System.Xml.Serialization;
 
 namespace DailyDocuments
 {
-
     public class Entry
     {
         [XmlElement("Title")]
@@ -22,7 +21,6 @@ namespace DailyDocuments
         [XmlIgnore]
         public ImageSource FileIcon { get; set; }
     }
-
 
     [XmlRoot("EntryCollection")]
     public class EntryCollection

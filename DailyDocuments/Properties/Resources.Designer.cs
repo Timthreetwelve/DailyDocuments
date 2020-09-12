@@ -93,6 +93,16 @@ namespace DailyDocuments.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
         /// </summary>
+        internal static System.Drawing.Icon globe_icon {
+            get {
+                object obj = ResourceManager.GetObject("globe_icon", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        /// </summary>
         internal static System.Drawing.Icon question_icon {
             get {
                 object obj = ResourceManager.GetObject("question_icon", resourceCulture);

@@ -9,6 +9,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
@@ -49,7 +50,6 @@ namespace DailyDocuments
         }
 
         #region Read Settings
-
         private void ReadSettings()
         {
             WriteLog.WriteTempFile(" ");
@@ -88,7 +88,6 @@ namespace DailyDocuments
             }
             WriteLog.WriteTempFile($"    Window Topmost is {Properties.Settings.Default.Topmost}");
 
-
             // Open delay
             openDelay = Properties.Settings.Default.OpenDelay;
 
@@ -113,14 +112,7 @@ namespace DailyDocuments
             WriteLog.WriteTempFile($"    Open delay is {openDelay} ms");
 
             // Exit on open
-            if (Properties.Settings.Default.ExitOnOpen)
-            {
-                mnuExitOpen.IsChecked = true;
-            }
-            else
-            {
-                mnuExitOpen.IsChecked = false;
-            }
+            mnuExitOpen.IsChecked = Properties.Settings.Default.ExitOnOpen;
             WriteLog.WriteTempFile($"    Exit on open is {Properties.Settings.Default.ExitOnOpen}");
 
             // Font size
@@ -130,20 +122,19 @@ namespace DailyDocuments
                 case 13:
                     {
                         mnuFontS.IsChecked = true;
-                        WriteLog.WriteTempFile($"    Font size is Small");
+                        WriteLog.WriteTempFile("    Font size is Small");
                         break;
                     }
                 case 17:
                     {
                         mnuFontL.IsChecked = true;
-                        WriteLog.WriteTempFile($"    Font size is Medium");
+                        WriteLog.WriteTempFile("    Font size is Medium");
                         break;
                     }
-                case 15:
                 default:
                     {
                         mnuFontM.IsChecked = true;
-                        WriteLog.WriteTempFile($"    Font size is Large");
+                        WriteLog.WriteTempFile("    Font size is Large");
                         break;
                     }
             }
@@ -160,11 +151,9 @@ namespace DailyDocuments
                 Debug.WriteLine("Show file type icons is False");
             }
         }
-
         #endregion Read Settings
 
         #region Fun with Dates
-
         private void DetermineDate(out DateTime date, out int totalDays)
         {
             if (pickerDate == null)
@@ -189,11 +178,9 @@ namespace DailyDocuments
                 WriteLog.WriteTempFile("  DA items will be selected today");
             }
         }
-
         #endregion Fun with Dates
 
         #region Get the menu XML file name
-
         private string GetXmlFile()
         {
             // Get our own folder
@@ -204,11 +191,9 @@ namespace DailyDocuments
 
             return myXml;
         }
-
         #endregion Get the menu XML file name
 
         #region Read the XML file
-
         private void ReadXml(string sourceXML)
         {
             WriteLog.WriteTempFile($"  Reading {sourceXML}");
@@ -218,7 +203,6 @@ namespace DailyDocuments
                 using (StreamReader reader = new StreamReader(sourceXML))
                 {
                     entryCollection = (EntryCollection)deserializer.Deserialize(reader);
-                    reader.Close();
                 }
             }
             else
@@ -236,7 +220,6 @@ namespace DailyDocuments
                 WriteLog.WriteTempFile($"  Read {entryCollection.Entries.Length} entries");
             }
         }
-
         #endregion Read the XML file
 
         #region Get file icons
@@ -261,10 +244,10 @@ namespace DailyDocuments
                         Debug.WriteLine($"{item.DocumentPath} is a directory");
                     }
                     // if complete path wasn't supplied check the path
-                    else if (docPath.EndsWith(".exe"))
+                    else if (docPath.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
                     {
                         StringBuilder sb = new StringBuilder(docPath, 2048);
-                        bool found = PathFindOnPath(sb, new String[] { null });
+                        bool found = PathFindOnPath(sb, new string[] { null });
                         if (found)
                         {
                             Icon temp = System.Drawing.Icon.ExtractAssociatedIcon(sb.ToString());
@@ -276,6 +259,12 @@ namespace DailyDocuments
                             item.FileIcon = IconToImageSource(temp);
                         }
                         Debug.WriteLine($"{item.DocumentPath} is executable");
+                    }
+                    else if (IsValidURL(docPath))
+                    {
+                        Icon temp = Properties.Resources.globe_icon;
+                        item.FileIcon = IconToImageSource(temp);
+                        Debug.WriteLine($"{item.DocumentPath} is valid URL");
                     }
                     else
                     {
@@ -335,12 +324,14 @@ namespace DailyDocuments
         {
             foreach (Entry item in entryCollection.Entries)
             {
-                if (item.Frequency == null) continue;
+                if (item.Frequency == null)
+                    continue;
                 matched = false;
 
                 foreach (string d in item.Frequency)
                 {
-                    if (matched) continue;
+                    if (matched)
+                        continue;
 
                     string day = d.Trim().ToUpper();
 
@@ -394,7 +385,7 @@ namespace DailyDocuments
                     {
                         CheckItem(item, day);
                     }
-                   // Monthly
+                    // Monthly
                     else if (day.StartsWith("M"))
                     {
                         string dt = day.Trim().Substring(1);
@@ -484,10 +475,9 @@ namespace DailyDocuments
         #endregion Check the boxes based on date
 
         #region Button events
-
         private void BtnOpen_Click(object sender, RoutedEventArgs e)
         {
-            WriteLog.WriteTempFile($"  Opening selected items");
+            WriteLog.WriteTempFile("  Opening selected items");
             foreach (var item in entryCollection.Entries)
             {
                 using (Process launch = new Process())
@@ -565,7 +555,6 @@ namespace DailyDocuments
         #endregion
 
         #region Menu events
-
         private void MnuExit_Click(object sender, RoutedEventArgs e)
         {
             Application.Current.Shutdown();
@@ -578,7 +567,7 @@ namespace DailyDocuments
 
         private void MnuReload_Click(object sender, RoutedEventArgs e)
         {
-            WriteLog.WriteTempFile($"  Reloading XML file.");
+            WriteLog.WriteTempFile("  Reloading XML file.");
             DetermineDate(out DateTime date, out int totalDays);
             ReadXml(GetXmlFile());
             GetIcons();
@@ -639,7 +628,7 @@ namespace DailyDocuments
 
         private void MnuReadme_Click(object sender, RoutedEventArgs e)
         {
-            string readme = @".\ReadMe.txt";
+            string readme = Path.Combine(AppInfo.AppDirectory, "ReadMe.txt");
 
             try
             {
@@ -754,13 +743,11 @@ namespace DailyDocuments
                     }
                 }
             }
-
         }
-
         #endregion Menu events
 
         #region Mouse events
-        void ListViewItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        private void ListViewItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             OpenSingleDoc(sender);
         }
@@ -796,7 +783,6 @@ namespace DailyDocuments
         #endregion
 
         #region Setting changed events
-
         private void SettingChanging(object sender, SettingChangingEventArgs e)
         {
             switch (e.SettingName)
@@ -831,7 +817,6 @@ namespace DailyDocuments
                     }
             }
         }
-
         #endregion Setting changed
 
         #region Keyboard events
@@ -860,28 +845,23 @@ namespace DailyDocuments
         #endregion Keyboard events
 
         #region Title version
-
         public void WindowTitleVersion()
         {
-            // Get the assembly version
-            Version version = Assembly.GetExecutingAssembly().GetName().Version;
+            string titleVer = AppInfo.TitleVersion;
+            string myExe = AppInfo.AppExeName;
 
-            string myExe = Assembly.GetExecutingAssembly().GetName().Name;
-
-            // Remove the release (last) node
-            string titleVer = version.ToString().Remove(version.ToString().LastIndexOf("."));
-
-            // Set the windows title
             Title = string.Format($"{myExe} - {titleVer}");
-
             WriteLog.WriteTempFile($"  {myExe} version is {titleVer}");
         }
-
         #endregion Title version
 
         #region Find on path
-
-        // This will search the Windows Path for the specified file
+        /// <summary>
+        /// This will search the Windows Path for the specified file
+        /// </summary>
+        /// <param name="pszFile"></param>
+        /// <param name="ppszOtherDirs"></param>
+        /// <returns></returns>
         [DllImport("shlwapi.dll", CharSet = CharSet.Auto, SetLastError = false)]
         private static extern bool PathFindOnPath([In, Out] StringBuilder pszFile, [In] string[] ppszOtherDirs);
         #endregion
@@ -892,7 +872,7 @@ namespace DailyDocuments
             foreach (string item in Environment.GetCommandLineArgs())
             {
                 // If command line argument "auto" is found click "Open" button
-                if (item.Replace("-","").Replace("/","").ToLower().Equals("automatic"))
+                if (item.Replace("-", "").Replace("/", "").Equals("automatic", StringComparison.OrdinalIgnoreCase))
                 {
                     btnOpen.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
                     WriteLog.WriteTempFile($"  Command line argument \"{item}\" found. Opening matched items.");
@@ -912,5 +892,11 @@ namespace DailyDocuments
         }
         #endregion
 
+        private static bool IsValidURL(string uriName)
+        {
+            string Pattern = @"^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$";
+            Regex Rgx = new Regex(Pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            return Rgx.IsMatch(uriName);
+        }
     }
 }
