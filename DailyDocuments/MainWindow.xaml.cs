@@ -410,7 +410,7 @@ namespace DailyDocuments
                             }
                             else
                             {
-                                WriteLog.WriteTempFile($"  No match for {day}: \"{item.DocumentPath}\"");
+                                WriteLog.WriteTempFile($"  No match {day}: \"{item.DocumentPath}\"");
                             }
                         }
                     }
@@ -426,7 +426,7 @@ namespace DailyDocuments
                         }
                         else
                         {
-                            WriteLog.WriteTempFile($"  No match for {day}: \"{item.DocumentPath}\"");
+                            WriteLog.WriteTempFile($"  No match {day}: \"{item.DocumentPath}\"");
                         }
                     }
                     // Specific date
@@ -443,7 +443,7 @@ namespace DailyDocuments
                         }
                         else
                         {
-                            WriteLog.WriteTempFile($"  No match for {day}: \"{item.DocumentPath}\"");
+                            WriteLog.WriteTempFile($"  No match {day}: \"{item.DocumentPath}\"");
                         }
                     }
                     // Even day of the month
@@ -459,7 +459,7 @@ namespace DailyDocuments
                     // No match
                     else
                     {
-                        WriteLog.WriteTempFile($"  No match for {day}: \"{item.DocumentPath}\"");
+                        WriteLog.WriteTempFile($"  No match {day}: \"{item.Title}\"");
                     }
                 }
             }
@@ -892,11 +892,13 @@ namespace DailyDocuments
         }
         #endregion
 
+        #region Check for a valid URL
         private static bool IsValidURL(string uriName)
         {
-            string Pattern = @"^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$";
+            const string Pattern = @"^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$";
             Regex Rgx = new Regex(Pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
             return Rgx.IsMatch(uriName);
         }
+        #endregion
     }
 }
