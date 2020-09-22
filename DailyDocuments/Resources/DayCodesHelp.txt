@@ -1,0 +1,39 @@
+Day Codes
+=========
+
+D1 = Every day
+D2 = Every two days, based on January 1st, 2019
+DA = Every two days, based on January 2nd, 2019
+
+SU = Sunday
+MO = Monday
+TU = Tuesday
+WE = Wednesday
+TH = Thursday
+FR = Friday
+SA = Saturday
+
+WKD = Weekdays (Monday through Friday)
+WKE = Weekends (Saturday and Sunday)
+
+M + 1 or 2 digits = Day of the month. Leading zeros are okay, but not required. For example, M12 for the 12th day of the month.
+
+ML = Last day of the month.
+
+Y + 1 to 3 digits = Day of the year. Leading zeros are okay, but not required. For example, Y100 for the 100th day of the year.
+
+EVEN = Any day of the month that is evenly divisible by 2.
+ODD = Days that are not considered even.
+
+And finally, any specific date expressed as mm/dd where mm is 1 or 2 digits representing the month and dd is 1 or 2 digits representing the day.
+Leading zeros are okay, but not required. The separator can be either the "/" or the "-" character (without the quotes). For example, 11/25 for the 25th of November.
+
+Some notes on day codes.
+
+1. Day codes aren't required. If you just want items on the list but don't want them preselected, then don't use a day code.
+
+2. It's not necessary to enter them in upper case but they will be converted to upper case before the list is saved.
+
+3. There isn't any error checking for the day codes. If you specify M45 or BR549, that item simply won't be selected.
+
+4. When specifying more than one day code for a single item, make sure to separate the codes with a comma.

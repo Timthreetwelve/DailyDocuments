@@ -1,0 +1,62 @@
+ [
+    {
+      "Title": "Every Day",
+      "DocumentPath": "ReadMe.txt",
+      "DayCodes": "D1"
+    },
+    {
+      "Title": "Tuesday, Thursday, Saturday",
+      "DocumentPath": "Sample.xlsx",
+      "DayCodes": "TU, TH, SA"
+    },
+    {
+      "Title": "Monday, Wednesday, Friday",
+      "DocumentPath": "Sample.xlsx",
+      "DayCodes": "MO, WE, FR"
+    },
+    {
+      "Title": "1st and 15th of the month",
+      "DocumentPath": "Sample.docx",
+      "DayCodes": "M1, M15"
+    },
+    {
+      "Title": "Last day of the month",
+      "DocumentPath": "%UserProfile%\\Desktop",
+      "DayCodes": "ML"
+    },
+    {
+      "Title": "Every other day ",
+      "DocumentPath": "Sample.docx",
+      "DayCodes": "D2"
+    },
+    {
+      "Title": "Every other day (alt) ",
+      "DocumentPath": "Sample.docx",
+      "DayCodes": "DA"
+    },
+    {
+      "Title": "Specific day (5/20)",
+      "DocumentPath": "C:\\Windows\\System32\\notepad.exe",
+      "DayCodes": "5/20"
+    },
+    {
+      "Title": "Even days",
+      "DocumentPath": "C:\\Windows\\System32\\msinfo32.exe",
+      "DayCodes": "Even"
+    },
+    {
+      "Title": "Odd days",
+      "DocumentPath": "C:\\Windows\\System32\\mspaint.exe",
+      "DayCodes": "ODD"
+    },
+    {
+      "Title": "Google during the week",
+      "DocumentPath": "https://google.com",
+      "DayCodes": "WKD"
+    },
+    {
+      "Title": "Bing on the weekend",
+      "DocumentPath": "https://www.bing.com",
+      "DayCodes": "WKE"
+    }
+  ]

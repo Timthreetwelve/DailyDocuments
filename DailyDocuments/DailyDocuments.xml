@@ -1,98 +1,59 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Be very careful when editing this file.
-     Malformed XML can cause the application to crash
--->
+<!-- Be very careful when editing this file. Malformed XML can cause the application to crash -->
 <EntryCollection>
-
   <Entry>
     <Title>Every Day</Title>
-    <DocumentPath>readme.txt</DocumentPath>
-    <Frequency>
-      <Day>D1</Day>
-    </Frequency>
+    <DocumentPath>ReadMe.txt</DocumentPath>
+    <DayCodes>D1</DayCodes>
   </Entry>
-
   <Entry>
     <Title>Tuesday, Thursday, Saturday</Title>
     <DocumentPath>Sample.xlsx</DocumentPath>
-    <Frequency>
-      <Day>TU</Day>
-      <Day>TH</Day>
-      <Day>SA</Day>
-    </Frequency>
+    <DayCodes>TU, TH, SA</DayCodes>
   </Entry>
-
   <Entry>
-    <Title>15th of the month</Title>
+    <Title>1st and 15th of the month</Title>
     <DocumentPath>Sample.docx</DocumentPath>
-    <Frequency>
-      <Day>M15</Day>
-    </Frequency>
+    <DayCodes>M1, M15</DayCodes>
   </Entry>
-
   <Entry>
     <Title>141st day</Title>
     <DocumentPath>C:\Program Files\Windows NT\Accessories\wordpad.exe\</DocumentPath>
-    <Frequency>
-      <Day>Y141</Day>
-    </Frequency>
+    <DayCodes>Y141</DayCodes>
   </Entry>
-
   <Entry>
     <Title>Every other day </Title>
     <DocumentPath>C:\</DocumentPath>
-    <Frequency>
-      <Day>D2</Day>
-    </Frequency>
+    <DayCodes>D2</DayCodes>
   </Entry>
-
   <Entry>
     <Title>Every other day (alt) </Title>
     <DocumentPath>C:\</DocumentPath>
-    <Frequency>
-      <Day>DA</Day>
-    </Frequency>
+    <DayCodes>DA</DayCodes>
   </Entry>
-
   <Entry>
     <Title>Last day of the month</Title>
     <DocumentPath>%UserProfile%\Desktop</DocumentPath>
-    <Frequency>
-      <Day>ML</Day>
-    </Frequency>
+    <DayCodes>ML</DayCodes>
   </Entry>
-
   <Entry>
     <Title>Specific day of the month</Title>
     <DocumentPath>C:\Windows\System32\notepad.exe</DocumentPath>
-    <Frequency>
-      <Day>5/20</Day>
-    </Frequency>
+    <DayCodes>5/20</DayCodes>
   </Entry>
-
   <Entry>
     <Title>Even days</Title>
     <DocumentPath>C:\Windows\System32\notepad.exe</DocumentPath>
-    <Frequency>
-      <Day>Even</Day>
-    </Frequency>
+    <DayCodes>Even</DayCodes>
   </Entry>
-
   <Entry>
     <Title>Odd days</Title>
     <DocumentPath>C:\Windows\System32\notepad.exe</DocumentPath>
-    <Frequency>
-      <Day>ODD</Day>
-    </Frequency>
+    <DayCodes>ODD</DayCodes>
   </Entry>
-
-  <!--  Template
-	<Entry>
-		<Title></Title>
-		<DocumentPath></DocumentPath>
-		<Frequency>
-			<Day></Day>
-		</Frequency>
-	</Entry>
-	-->
+  <Entry>
+    <Title>Google</Title>
+    <DocumentPath>Https://google.com</DocumentPath>
+    <DayCodes>Fred</DayCodes>
+  </Entry>
 </EntryCollection>

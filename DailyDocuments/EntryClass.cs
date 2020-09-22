@@ -1,19 +1,25 @@
-﻿using System.Collections.ObjectModel;
+﻿// Copyright (c) TIm Kennedy. All Rights Reserved. Licensed under the MIT License.
+
+#region using directives
+using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Windows.Media;
-using System.Xml.Serialization;
+using Newtonsoft.Json;
+#endregion using directives
 
 namespace DailyDocuments
 {
-    public class Entry : INotifyPropertyChanged
+    public class EntryClass : INotifyPropertyChanged
     {
+        #region Private backing fields
         private string title;
         private string documentPath;
         private string dayCodes;
+        #endregion Private backing fields
 
-        [XmlElement("Title")]
+        #region Properties
+        [JsonProperty("Title")]
         public string Title
         {
             get { return title; }
@@ -27,7 +33,7 @@ namespace DailyDocuments
             }
         }
 
-        [XmlElement("DocumentPath")]
+        [JsonProperty("DocumentPath")]
         public string DocumentPath
         {
             get { return documentPath; }
@@ -41,7 +47,7 @@ namespace DailyDocuments
             }
         }
 
-        [XmlElement("DayCodes")]
+        [JsonProperty("DayCodes")]
         public string DayCodes
         {
             get { return dayCodes; }
@@ -49,34 +55,30 @@ namespace DailyDocuments
             {
                 if (value != null)
                 {
-                    dayCodes = value;
+                    dayCodes = value.ToUpper();
                     OnPropertyChanged();
                 }
             }
         }
 
-        [XmlIgnore]
+        [JsonIgnore]
         public bool IsChecked { get; set; }
 
-        [XmlIgnore]
+        [JsonIgnore]
         public ImageSource FileIcon { get; set; }
+        #endregion Properties
 
-        // Property changed
-
+        #region Handle property change
         public event PropertyChangedEventHandler PropertyChanged;
 
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-    }
+        #endregion Handle property change
 
-    [XmlRoot("EntryCollection")]
-    public class EntryCollection
-    {
-        [XmlElement("Entry")]
-        public Entry[] Entries { get; set; }
-
-        public static ObservableCollection<EntryCollection> EntryColl { get; set; }
+        #region Observable collection
+        public static ObservableCollection<EntryClass> Entries { get; set; }
+        #endregion Observable collection
     }
 }

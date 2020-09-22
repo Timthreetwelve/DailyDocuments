@@ -4,7 +4,7 @@ using System;
 using System.Diagnostics;
 using System.Reflection;
 using System.Windows;
-using TKUtils;
+using NLog;
 
 namespace DailyDocuments
 {
@@ -13,9 +13,13 @@ namespace DailyDocuments
     /// </summary>
     public partial class App : Application
     {
+        #region NLog
+        private static readonly Logger log = LogManager.GetCurrentClassLogger();
+        #endregion NLog
+
         protected override void OnStartup(StartupEventArgs e)
         {
-            string myExeName = Assembly.GetExecutingAssembly().GetName().Name.ToString();
+            string myExeName = Assembly.GetExecutingAssembly().GetName().Name;
             Process currentProcess = Process.GetCurrentProcess();
             Debug.WriteLine($"+++ Current process = {currentProcess.ProcessName} {currentProcess.Id}");
 
@@ -23,12 +27,10 @@ namespace DailyDocuments
             {
                 if (AllProcesses.Id != currentProcess.Id && AllProcesses.ProcessName == currentProcess.ProcessName)
                 {
-                    WriteLog.WriteTempFile("");
                     string msg = $"* I am  {currentProcess.ProcessName} {currentProcess.Id}. " +
                                  $"- {AllProcesses.ProcessName} {AllProcesses.Id} is also running.";
-                    WriteLog.WriteTempFile(msg);
-                    WriteLog.WriteTempFile($"* An instance of {myExeName} is already running!  Shutting this one down.");
-                    WriteLog.WriteTempFile("");
+                    log.Warn(msg);
+                    log.Warn($"* An instance of {myExeName} is already running!  Shutting this one down.");
 
                     _ = MessageBox.Show($"An instance of {myExeName} is already running",
                                         myExeName,

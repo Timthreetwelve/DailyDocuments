@@ -1,12 +1,14 @@
 ﻿// Copyright (c) TIm Kennedy. All Rights Reserved. Licensed under the MIT License.
 
+#region Using directives
 using System;
-using System.ComponentModel;
+using System.Collections.ObjectModel;
 using System.Configuration;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
-using System.Reflection;
+using System.Linq;
+using System.Media;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -17,18 +19,29 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Xml.Serialization;
+using Newtonsoft.Json;
+using NLog;
+using NLog.Targets;
 using TKUtils;
+using ColorDialog = System.Windows.Forms.ColorDialog;
 using MessageBox = Xceed.Wpf.Toolkit.MessageBox;
+#endregion Using directives
 
 namespace DailyDocuments
 {
     public partial class MainWindow : Window
     {
-        private EntryCollection entryCollection;
+        #region Private fields
         private int openDelay;
         private bool matched;
         private DateTime? pickerDate;
+        private DateTime date;
+        public static int totalDays;
+        #endregion Private fields
+
+        #region NLog
+        private static readonly Logger log = LogManager.GetCurrentClassLogger();
+        #endregion NLog
 
         public MainWindow()
         {
@@ -36,27 +49,42 @@ namespace DailyDocuments
 
             ReadSettings();
 
-            DetermineDate(out DateTime date, out int totalDays);
+            DetermineDate(out date, out totalDays);
 
-            ReadXml(GetXmlFile());
+            ReadJson(GetJsonFile());
 
-            GetIcons();
+            ConditionalyGetIcons();
 
             CheckItems(date, totalDays);
 
             ProcessCommandLine();
 
-            DataContext = entryCollection.Entries;  // ItemsSource is set in Xaml
+            DataContext = EntryClass.Entries;
+        }
+
+        private void ConditionalyGetIcons()
+        {
+            if (Properties.Settings.Default.ShowFileIcons)
+            {
+                GetIcons();
+            }
         }
 
         #region Read Settings
         private void ReadSettings()
         {
-            WriteLog.WriteTempFile(" ");
-            WriteLog.WriteTempFile("DailyDocuments is starting up");
-            WindowTitleVersion();
-            WriteLog.WriteTempFile("  Settings:");
+            // Unhandled exception handler
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
+            // Change the log file filename when debugging
+            if (Debugger.IsAttached)
+                GlobalDiagnosticsContext.Set("TempOrDebug", "debug");
+            else
+                GlobalDiagnosticsContext.Set("TempOrDebug", "temp");
+
+            log.Info($"{AppInfo.AppName} {AppInfo.TitleVersion} is starting up");
+
+            // Handle changes to settings
             Properties.Settings.Default.SettingChanging += SettingChanging;
 
             // Settings upgrade if needed
@@ -65,7 +93,6 @@ namespace DailyDocuments
                 Properties.Settings.Default.Upgrade();
                 Properties.Settings.Default.SettingsUpgradeRequired = false;
                 Properties.Settings.Default.Save();
-                // CleanupPrevSettings must be called AFTER settings Upgrade and Save
                 CleanUp.CleanupPrevSettings();
             }
 
@@ -76,21 +103,11 @@ namespace DailyDocuments
             Width = Properties.Settings.Default.WindowWidth;
 
             // Topmost
-            if (Properties.Settings.Default.Topmost)
-            {
-                Topmost = true;
-                mnuOnTop.IsChecked = true;
-            }
-            else
-            {
-                Topmost = false;
-                mnuOnTop.IsChecked = false;
-            }
-            WriteLog.WriteTempFile($"    Window Topmost is {Properties.Settings.Default.Topmost}");
+            Topmost = Properties.Settings.Default.Topmost;
+            log.Debug($"Window Topmost is {Properties.Settings.Default.Topmost}");
 
             // Open delay
             openDelay = Properties.Settings.Default.OpenDelay;
-
             switch (openDelay)
             {
                 case 250:
@@ -109,11 +126,11 @@ namespace DailyDocuments
                         break;
                     }
             }
-            WriteLog.WriteTempFile($"    Open delay is {openDelay} ms");
+            log.Debug($"Open delay is {openDelay} ms");
 
             // Exit on open
             mnuExitOpen.IsChecked = Properties.Settings.Default.ExitOnOpen;
-            WriteLog.WriteTempFile($"    Exit on open is {Properties.Settings.Default.ExitOnOpen}");
+            log.Debug($"Exit on open is {Properties.Settings.Default.ExitOnOpen}");
 
             // Font size
             lbDocs.FontSize = Properties.Settings.Default.FontSize;
@@ -122,34 +139,33 @@ namespace DailyDocuments
                 case 13:
                     {
                         mnuFontS.IsChecked = true;
-                        WriteLog.WriteTempFile("    Font size is Small");
+                        log.Debug("Font size is Small");
                         break;
                     }
                 case 17:
                     {
                         mnuFontL.IsChecked = true;
-                        WriteLog.WriteTempFile("    Font size is Medium");
+                        log.Debug("Font size is Medium");
                         break;
                     }
                 default:
                     {
                         mnuFontM.IsChecked = true;
-                        WriteLog.WriteTempFile("    Font size is Large");
+                        log.Debug("Font size is Large");
                         break;
                     }
             }
 
             // Show file type icons
-            if (Properties.Settings.Default.ShowFileIcons)
-            {
-                mnuShowIcons.IsChecked = true;
-                Debug.WriteLine("Show file type icons is True");
-            }
-            else
-            {
-                mnuShowIcons.IsChecked = false;
-                Debug.WriteLine("Show file type icons is False");
-            }
+            mnuShowIcons.IsChecked = Properties.Settings.Default.ShowFileIcons;
+            log.Debug($"Show file type icons {Properties.Settings.Default.ExitOnOpen}");
+
+            // Background color
+            string bg = Properties.Settings.Default.BGColor;
+            lbDocs.Background = BrushFromHex(bg);
+
+            // App name and version in the title
+            WindowTitleVersion();
         }
         #endregion Read Settings
 
@@ -167,81 +183,99 @@ namespace DailyDocuments
             TimeSpan span = (date - startDate);
             totalDays = span.Days;
 
-            WriteLog.WriteTempFile($"  Selected date is: {date.DayOfWeek}, {date}");
-            WriteLog.WriteTempFile($"  Total days since 2019/01/01 is: {totalDays}");
+            log.Info($"Selected date is: {date.ToLongDateString()}");
+            log.Info($"Total days since 2019/01/01 is: {totalDays}");
             if (totalDays % 2 == 0)
             {
-                WriteLog.WriteTempFile("  D2 items will be selected today");
+                log.Info("D2 items will be selected today");
             }
             else
             {
-                WriteLog.WriteTempFile("  DA items will be selected today");
+                log.Info("DA items will be selected today");
             }
         }
         #endregion Fun with Dates
 
-        #region Get the menu XML file name
-        private string GetXmlFile()
+        #region Get the menu JSON file name
+        private string GetJsonFile()
         {
-            // Get our own folder
-            string myExePath = Assembly.GetExecutingAssembly().Location;
-
-            // Append the filename
-            string myXml = Path.Combine(Path.GetDirectoryName(myExePath), "DailyDocuments.xml");
-
-            return myXml;
+            return Path.Combine(AppInfo.AppDirectory, "DailyDocuments.json");
         }
-        #endregion Get the menu XML file name
+        #endregion Get the menu JSON file name
 
-        #region Read the XML file
-        private void ReadXml(string sourceXML)
+        #region Read the JSON file
+        private void ReadJson(string jsonfile)
         {
-            WriteLog.WriteTempFile($"  Reading {sourceXML}");
-            XmlSerializer deserializer = new XmlSerializer(typeof(EntryCollection));
-            if (File.Exists(sourceXML))
+            log.Debug($"Reading JSON file: {jsonfile}");
+            string json = string.Empty;
+            try
             {
-                using (StreamReader reader = new StreamReader(sourceXML))
-                {
-                    entryCollection = (EntryCollection)deserializer.Deserialize(reader);
-                }
+                json = File.ReadAllText(jsonfile);
+            }
+            catch (Exception ex) when (ex is DirectoryNotFoundException || ex is FileNotFoundException)
+            {
+                log.Error(ex, "File or Directory not found {0}", jsonfile);
+                SystemSounds.Exclamation.Play();
+                _ = MessageBox.Show($"File or Directory not found:\n\n{ex.Message}\n\nUnable to continue.",
+                                     "DailyDocuments Error",
+                                     MessageBoxButton.OK,
+                                     MessageBoxImage.Error);
+                Environment.Exit(1);
+            }
+            catch (Exception ex)
+            {
+                log.Error(ex, "Error reading file: {0}", jsonfile);
+                SystemSounds.Exclamation.Play();
+                _ = MessageBox.Show($"Error reading file:\n\n{ex.Message}",
+                                     "DailyDocuments Error",
+                                     MessageBoxButton.OK,
+                                     MessageBoxImage.Error);
+            }
+
+            EntryClass.Entries = JsonConvert.DeserializeObject<ObservableCollection<EntryClass>>(json);
+
+            if (EntryClass.Entries == null)
+            {
+                log.Error("File {0} is empty or is invalid", jsonfile);
+                SystemSounds.Exclamation.Play();
+                _ = MessageBox.Show($"File {jsonfile} is empty or is invalid\n\nUnable to continue.",
+                                     "DailyDocuments Error",
+                                     MessageBoxButton.OK,
+                                     MessageBoxImage.Error);
+                Environment.Exit(2);
+            }
+
+            if (EntryClass.Entries.Count == 1)
+            {
+                log.Info($"Read {EntryClass.Entries.Count} entry from {jsonfile}");
             }
             else
             {
-                _ = MessageBox.Show($"Error reading XML file\n\nFile not found: {sourceXML}", "DailyDocuments Error",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
-                Environment.Exit(9);
-            }
-            if (entryCollection.Entries.Length == 1)
-            {
-                WriteLog.WriteTempFile($"  Read {entryCollection.Entries.Length} entry");
-            }
-            else
-            {
-                WriteLog.WriteTempFile($"  Read {entryCollection.Entries.Length} entries");
+                log.Info($"Read {EntryClass.Entries.Count} entries from {jsonfile}");
             }
         }
-        #endregion Read the XML file
+        #endregion Read the JSON file
 
         #region Get file icons
         private void GetIcons()
         {
-            if (Properties.Settings.Default.ShowFileIcons)
+            foreach (EntryClass item in EntryClass.Entries)
             {
-                foreach (Entry item in entryCollection.Entries)
+                if (!string.IsNullOrEmpty(item.DocumentPath))
                 {
                     string docPath = item.DocumentPath.TrimEnd('\\');
                     if (File.Exists(docPath))
                     {
                         Icon temp = System.Drawing.Icon.ExtractAssociatedIcon(docPath);
                         item.FileIcon = IconToImageSource(temp);
-                        Debug.WriteLine($"{item.DocumentPath} is a file");
+                        log.Debug($"{item.DocumentPath} is a file");
                     }
                     // expand environmental variables for folders
                     else if (Directory.Exists(Environment.ExpandEnvironmentVariables(docPath)))
                     {
                         Icon temp = Properties.Resources.folder_icon;
                         item.FileIcon = IconToImageSource(temp);
-                        Debug.WriteLine($"{item.DocumentPath} is a directory");
+                        log.Debug($"{item.DocumentPath} is a directory");
                     }
                     // if complete path wasn't supplied check the path
                     else if (docPath.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
@@ -258,20 +292,26 @@ namespace DailyDocuments
                             Icon temp = Properties.Resources.question_icon;
                             item.FileIcon = IconToImageSource(temp);
                         }
-                        Debug.WriteLine($"{item.DocumentPath} is executable");
+                        log.Debug($"{item.DocumentPath} is executable");
                     }
                     else if (IsValidURL(docPath))
                     {
                         Icon temp = Properties.Resources.globe_icon;
                         item.FileIcon = IconToImageSource(temp);
-                        Debug.WriteLine($"{item.DocumentPath} is valid URL");
+                        log.Debug($"{item.DocumentPath} is valid URL");
                     }
                     else
                     {
                         Icon temp = Properties.Resources.question_icon;
                         item.FileIcon = IconToImageSource(temp);
-                        Debug.WriteLine($"{item.DocumentPath} is something else");
+                        log.Debug($"{item.DocumentPath} is something else");
                     }
+                }
+                else
+                {
+                    Icon temp = Properties.Resources.question_icon;
+                    item.FileIcon = IconToImageSource(temp);
+                    log.Debug("Document path is empty or null");
                 }
             }
         }
@@ -286,49 +326,23 @@ namespace DailyDocuments
 
         #endregion Get file icons
 
-        #region Edit the XML file
-        private void EditXML()
+        #region Edit the JSON file
+        private void EditJSON(string json)
         {
-            string sourceXML = GetXmlFile();
-            try
-            {
-                _ = Process.Start(sourceXML);
-            }
-            catch (Win32Exception ex)
-            {
-                // If no application associate with .xml, fire up notepad.exe
-                if (ex.NativeErrorCode == 1155)
-                {
-                    Process p = new Process();
-                    p.StartInfo.FileName = "notepad.exe";
-                    p.StartInfo.Arguments = sourceXML;
-                    _ = p.Start();
-                }
-                else
-                {
-                    _ = MessageBox.Show($"Error reading XML file {sourceXML}\n{ex.Message}", "DailyDocuments Error",
-                        MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-            }
-            catch (Exception ex)
-            {
-                _ = MessageBox.Show($"Error reading XML file {sourceXML}\n{ex.Message}", "DailyDocuments Error",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+            TextFileViewer.ViewTextFile(json);
         }
-
-        #endregion Edit the XML file
+        #endregion Edit the JSON file
 
         #region Check the boxes based on date
         private void CheckItems(DateTime theDate, int totalDays)
         {
-            foreach (Entry item in entryCollection.Entries)
+            foreach (EntryClass item in EntryClass.Entries)
             {
-                if (item.Frequency == null)
+                if (string.IsNullOrEmpty(item.DayCodes))
                     continue;
                 matched = false;
 
-                foreach (string d in item.Frequency)
+                foreach (var d in item.DayCodes.Split(','))
                 {
                     if (matched)
                         continue;
@@ -410,7 +424,7 @@ namespace DailyDocuments
                             }
                             else
                             {
-                                WriteLog.WriteTempFile($"  No match {day}: \"{item.DocumentPath}\"");
+                                LogNoMatch(item, day);
                             }
                         }
                     }
@@ -426,7 +440,7 @@ namespace DailyDocuments
                         }
                         else
                         {
-                            WriteLog.WriteTempFile($"  No match {day}: \"{item.DocumentPath}\"");
+                            LogNoMatch(item, day);
                         }
                     }
                     // Specific date
@@ -443,7 +457,7 @@ namespace DailyDocuments
                         }
                         else
                         {
-                            WriteLog.WriteTempFile($"  No match {day}: \"{item.DocumentPath}\"");
+                            LogNoMatch(item, day);
                         }
                     }
                     // Even day of the month
@@ -456,55 +470,49 @@ namespace DailyDocuments
                     {
                         CheckItem(item, day);
                     }
+                    // Weekday
+                    else if (day == "WKD" && (theDate.DayOfWeek != DayOfWeek.Sunday && theDate.DayOfWeek != DayOfWeek.Saturday))
+                    {
+                        CheckItem(item, day);
+                    }
+                    // Weekend
+                    else if (day == "WKE" && (theDate.DayOfWeek == DayOfWeek.Sunday || theDate.DayOfWeek == DayOfWeek.Saturday))
+                    {
+                        CheckItem(item, day);
+                    }
                     // No match
                     else
                     {
-                        WriteLog.WriteTempFile($"  No match {day}: \"{item.Title}\"");
+                        LogNoMatch(item, day);
                     }
                 }
             }
         }
 
-        private void CheckItem(Entry item, string day)
+        private static void LogNoMatch(EntryClass item, string day)
+        {
+            day = day.PadRight(5, ' ');
+            log.Debug($"No match:  {day} \"{item.Title}\"");
+        }
+
+        private void CheckItem(EntryClass item, string day)
         {
             item.IsChecked = true;
             matched = true;
-            WriteLog.WriteTempFile($"  Matched {day}:  \"{item.Title}\"");
+            day = day.PadRight(5, ' ');
+            log.Info($"Matched:   {day} \"{item.Title}\"");
         }
-
         #endregion Check the boxes based on date
 
         #region Button events
         private void BtnOpen_Click(object sender, RoutedEventArgs e)
         {
-            WriteLog.WriteTempFile("  Opening selected items");
-            foreach (var item in entryCollection.Entries)
+            log.Info("Opening selected items");
+            foreach (EntryClass item in EntryClass.Entries)
             {
-                using (Process launch = new Process())
+                if (item.IsChecked)
                 {
-                    Debug.WriteLine($"{item.Title} is {item.IsChecked}");
-                    if (item.IsChecked)
-                    {
-                        try
-                        {
-                            launch.StartInfo.FileName = Environment.ExpandEnvironmentVariables(item.DocumentPath);
-                            _ = launch.Start();
-                            WriteLog.WriteTempFile($"  Opening \"{item.Title}\"");
-                            Thread.Sleep(openDelay);
-                        }
-                        catch (Exception ex)
-                        {
-                            _ = MessageBox.Show($"Error launching \"{item.Title}\"" +
-                                                $"\n{item.DocumentPath}" +
-                                                $"\n\n{ex.Message}",
-                                                "Launch Error",
-                                                MessageBoxButton.OK,
-                                                MessageBoxImage.Error);
-
-                            WriteLog.WriteTempFile($"* Open failed for {item.Title}");
-                            WriteLog.WriteTempFile($"* {ex.Message}");
-                        }
-                    }
+                    LaunchDocument(item);
                 }
             }
             if (Properties.Settings.Default.ExitOnOpen)
@@ -513,11 +521,35 @@ namespace DailyDocuments
             }
         }
 
-        private void BtnClear_Click(object sender, RoutedEventArgs e)
+        private void LaunchDocument(EntryClass item)
         {
-            RefreshEntries();
+            using (Process launch = new Process())
+            {
+                try
+                {
+                    launch.StartInfo.FileName = Environment.ExpandEnvironmentVariables(item.DocumentPath);
+                    _ = launch.Start();
+                    log.Info($"Opening \"{item.Title}\"");
+                    Thread.Sleep(openDelay);
+                }
+                catch (Exception ex)
+                {
+                    log.Error(ex, "Open failed for \"{0}\" - \"{1}\"", item.Title, item.DocumentPath);
+                    SystemSounds.Exclamation.Play();
+                    _ = MessageBox.Show($"Error launching \"{item.Title}\"" +
+                                        $"\n{item.DocumentPath}" +
+                                        $"\n\n{ex.Message}",
+                                        "Launch Error",
+                                        MessageBoxButton.OK,
+                                        MessageBoxImage.Error);
+                }
+            }
         }
 
+        private void BtnClear_Click(object sender, RoutedEventArgs e)
+        {
+            UncheckAll();
+        }
         #endregion Button events
 
         #region Window events
@@ -531,7 +563,9 @@ namespace DailyDocuments
             // save the property settings
             Properties.Settings.Default.Save();
 
-            WriteLog.WriteTempFile("DailyDocuments is shutting down");
+            log.Info("DailyDocuments is shutting down");
+
+            LogManager.Flush();
         }
         #endregion Window events
 
@@ -541,15 +575,12 @@ namespace DailyDocuments
             if (IsLoaded)
             {
                 pickerDate = xceedDateTime.Value;
+                DateTime pickerD = (DateTime)pickerDate;
+                log.Info($"Date changed to { pickerD.ToLongDateString()} - Reloading the list");
 
-                DetermineDate(out DateTime date, out int totalDays);
-
-                RefreshEntries();
-
+                DetermineDate(out date, out totalDays);
+                UncheckAll();
                 CheckItems(date, totalDays);
-
-                Debug.WriteLine($"Selected date is {pickerDate}");
-                WriteLog.WriteTempFile($"  Selected date changed to {pickerDate} - Reloading...");
             }
         }
         #endregion
@@ -560,29 +591,9 @@ namespace DailyDocuments
             Application.Current.Shutdown();
         }
 
-        private void MnuEditXML_Click(object sender, RoutedEventArgs e)
+        private void MnuEditJSON_Click(object sender, RoutedEventArgs e)
         {
-            EditXML();
-        }
-
-        private void MnuReload_Click(object sender, RoutedEventArgs e)
-        {
-            WriteLog.WriteTempFile("  Reloading XML file.");
-            DetermineDate(out DateTime date, out int totalDays);
-            ReadXml(GetXmlFile());
-            GetIcons();
-            lbDocs.ItemsSource = entryCollection.Entries;
-            CheckItems(date, totalDays);
-        }
-
-        private void MnuOnTop_Checked(object sender, RoutedEventArgs e)
-        {
-            Properties.Settings.Default.Topmost = true;
-        }
-
-        private void MnuOnTop_Unchecked(object sender, RoutedEventArgs e)
-        {
-            Properties.Settings.Default.Topmost = false;
+            EditJSON(GetJsonFile());
         }
 
         private void MnuFontS_Checked(object sender, RoutedEventArgs e)
@@ -618,74 +629,17 @@ namespace DailyDocuments
 
         private void MnuAbout_Click(object sender, RoutedEventArgs e)
         {
-            About about = new About
-            {
-                Owner = Application.Current.MainWindow,
-                WindowStartupLocation = WindowStartupLocation.CenterOwner
-            };
-            _ = about.ShowDialog();
+            ShowAbout();
         }
 
         private void MnuReadme_Click(object sender, RoutedEventArgs e)
         {
-            string readme = Path.Combine(AppInfo.AppDirectory, "ReadMe.txt");
-
-            try
-            {
-                _ = Process.Start(readme);
-            }
-            catch (Win32Exception ex)
-            {
-                // If no application is associated with .txt fire up notepad.exe
-                if (ex.NativeErrorCode == 1155)
-                {
-                    Process p = new Process();
-                    p.StartInfo.FileName = "notepad.exe";
-                    p.StartInfo.Arguments = readme;
-                    _ = p.Start();
-                }
-                else
-                {
-                    _ = MessageBox.Show($"Error reading temp file {readme}\n{ex.Message}", "DailyDocuments Error",
-                        MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-            }
-            catch (Exception ex)
-            {
-                _ = MessageBox.Show($"Error reading temp file {readme}\n{ex.Message}", "DailyDocuments Error",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+            TextFileViewer.ViewTextFile(Path.Combine(AppInfo.AppDirectory, "ReadMe.txt"));
         }
 
         private void MnuViewTemp_Click(object sender, RoutedEventArgs e)
         {
-            string temp = WriteLog.GetTempFile();
-            try
-            {
-                _ = Process.Start(temp);
-            }
-            catch (Win32Exception ex)
-            {
-                if (ex.NativeErrorCode == 1155)
-                {
-                    using (Process p = new Process())
-                    {
-                        p.StartInfo.FileName = "notepad.exe";
-                        p.StartInfo.Arguments = temp;
-                        _ = p.Start();
-                    }
-                }
-                else
-                {
-                    _ = MessageBox.Show($"Error reading temp file {temp}\n{ex.Message}", "DailyDocuments Error",
-                        MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-            }
-            catch (Exception ex)
-            {
-                _ = MessageBox.Show($"Error reading temp file {temp}\n{ex.Message}", "DailyDocuments Error",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+            TextFileViewer.ViewTextFile(GetTempFile());
         }
 
         private void MnuDelay25_Checked(object sender, RoutedEventArgs e)
@@ -709,78 +663,91 @@ namespace DailyDocuments
             mnuDelay50.IsChecked = false;
         }
 
-        private void MnuShowIcons_Checked(object sender, RoutedEventArgs e)
+        private void MnuMaint_Click(object sender, RoutedEventArgs e)
         {
-            Properties.Settings.Default.ShowFileIcons = true;
+            OpenMaintWindow();
         }
 
-        private void MnuShowIcons_Unchecked(object sender, RoutedEventArgs e)
+        private void MnuBGColor_Click(object sender, RoutedEventArgs e)
         {
-            Properties.Settings.Default.ShowFileIcons = false;
-        }
-        private void CxmOpen_Click(object sender, RoutedEventArgs e)
-        {
-            if (lbDocs.SelectedItem != null)
+            ColorDialog cd = new ColorDialog
             {
-                Entry entry = (Entry)lbDocs.SelectedItem;
-                Debug.WriteLine(entry.DocumentPath);
-                using (Process p = new Process())
-                {
-                    try
-                    {
-                        p.StartInfo.FileName = Environment.ExpandEnvironmentVariables(entry.DocumentPath);
-                        _ = p.Start();
-                        WriteLog.WriteTempFile($"  Opening \"{entry.Title}\"");
-                    }
-                    catch (Exception ex)
-                    {
-                        _ = MessageBox.Show($"Error launching \"{entry.Title}\"" +
-                                            $"\n{entry.DocumentPath}" +
-                                            $"\n\n{ex.Message}",
-                                            "Launch Error",
-                                            MessageBoxButton.OK,
-                                            MessageBoxImage.Error);
-                    }
-                }
+                AnyColor = true,
+                FullOpen = false,
+                Color = BackgroundToColor((SolidColorBrush)lbDocs.Background),
+                CustomColors = new int[] { 13882323, 15263718, 15132390, 16119285,
+                                          15794175, 14745599, 14417919, 13826810,
+                                          16246753, 16708839, 16777184, 16775408,
+                                          16775416, 16449525, 16118015, 14810602}
+            };
+            var result = cd.ShowDialog();
+            if (result == System.Windows.Forms.DialogResult.OK)
+            {
+                lbDocs.Background = BrushFromHex(HexFromColor(cd.Color));
+                Properties.Settings.Default.BGColor = HexFromColor(cd.Color);
             }
+        }
+
+        private void Copy2Clipboard_Click(object sender, RoutedEventArgs e)
+        {
+            string fullName = AppInfo.AppPath;
+            Clipboard.SetText(fullName);
+            log.Debug($"{fullName} copied to clipboard");
         }
         #endregion Menu events
 
         #region Mouse events
         private void ListViewItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            OpenSingleDoc(sender);
+            if (!(((ListViewItem)sender).Content is EntryClass))
+            {
+                return;
+            }
+            if (lbDocs.SelectedItem != null)
+            {
+                EntryClass entry = (EntryClass)lbDocs.SelectedItem;
+                LaunchDocument(entry);
+            }
         }
 
-        private static void OpenSingleDoc(object sender)
+        private void LbDocs_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
-            if (!(((ListViewItem)sender).Content is Entry entry))
+            if (Keyboard.Modifiers != ModifierKeys.Control)
             {
                 return;
             }
 
-            Debug.WriteLine($"+++ {entry.DocumentPath}");
-
-            using (Process p = new Process())
+            if (e.Delta > 0 && lbDocs.FontSize < 17)
             {
-                try
-                {
-                    p.StartInfo.FileName = Environment.ExpandEnvironmentVariables(entry.DocumentPath);
-                    _ = p.Start();
-                    WriteLog.WriteTempFile($"  Opening \"{entry.Title}\"");
-                }
-                catch (Exception ex)
-                {
-                    _ = MessageBox.Show($"Error launching \"{entry.Title}\"" +
-                                        $"\n{entry.DocumentPath}" +
-                                        $"\n\n{ex.Message}",
-                                        "Launch Error",
-                                        MessageBoxButton.OK,
-                                        MessageBoxImage.Error);
-                }
+                lbDocs.FontSize += 2;
+            }
+            else if (e.Delta < 0 && lbDocs.FontSize > 13)
+            {
+                lbDocs.FontSize -= 2;
+            }
+            else
+            {
+                return;
+            }
+
+            mnuFontS.IsChecked = false;
+            mnuFontM.IsChecked = false;
+            mnuFontL.IsChecked = false;
+
+            switch (lbDocs.FontSize)
+            {
+                case 13:
+                    mnuFontS.IsChecked = true;
+                    break;
+                case 15:
+                    mnuFontM.IsChecked = true;
+                    break;
+                case 17:
+                    mnuFontL.IsChecked = true;
+                    break;
             }
         }
-        #endregion
+        #endregion Mouse events
 
         #region Setting changed events
         private void SettingChanging(object sender, SettingChangingEventArgs e)
@@ -789,45 +756,53 @@ namespace DailyDocuments
             {
                 case "FontSize":
                     {
-                        Debug.WriteLine($"{e.SettingName} {e.NewValue}");
+                        log.Debug($"{e.SettingName} {e.NewValue}");
                         lbDocs.FontSize = (double)e.NewValue;
                         break;
                     }
                 case "Topmost":
                     {
-                        Debug.WriteLine($"{e.SettingName} {e.NewValue}");
+                        log.Debug($"{e.SettingName} {e.NewValue}");
                         Topmost = (bool)e.NewValue;
                         break;
                     }
                 case "ExitOnOpen":
                     {
-                        Debug.WriteLine($"{e.SettingName} {e.NewValue}");
+                        log.Debug($"{e.SettingName} {e.NewValue}");
                         break;
                     }
                 case "OpenDelay":
                     {
-                        Debug.WriteLine($"{e.SettingName} {e.NewValue}");
+                        log.Debug($"{e.SettingName} {e.NewValue}");
                         openDelay = (int)e.NewValue;
                         break;
                     }
                 case "ShowFileIcons":
                     {
-                        Debug.WriteLine($"{e.SettingName} {e.NewValue}");
+                        if (IsLoaded && (bool)e.NewValue)
+                        {
+                            GetIcons();
+                            lbDocs.Items.Refresh();
+                        }
+                        log.Debug($"{e.SettingName} {e.NewValue}");
+                        break;
+                    }
+                case "BGColor":
+                    {
+                        log.Debug($"{e.SettingName} {e.NewValue}");
                         break;
                     }
             }
         }
-        #endregion Setting changed
+        #endregion Setting changed events
 
         #region Keyboard events
-
-        private void Window_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
+        private void Window_KeyUp(object sender, KeyEventArgs e)
         {
             // F1 opens about
             if (e.Key == Key.F1)
             {
-                About ab = new About();
-                ab.Show();
+                ShowAbout();
             }
             // Ctrl + comma opens Preferences
             if (e.Key == Key.OemComma && (e.KeyboardDevice.Modifiers == ModifierKeys.Control))
@@ -838,20 +813,20 @@ namespace DailyDocuments
             // Ctrl + E opens the XML file
             if (e.Key == Key.E && (e.KeyboardDevice.Modifiers == ModifierKeys.Control))
             {
-                EditXML();
+                EditJSON(GetJsonFile());
+            }
+            // Ctrl + M opens the List Maintenance window
+            if (e.Key == Key.M && (e.KeyboardDevice.Modifiers == ModifierKeys.Control))
+            {
+                OpenMaintWindow();
             }
         }
-
         #endregion Keyboard events
 
         #region Title version
         public void WindowTitleVersion()
         {
-            string titleVer = AppInfo.TitleVersion;
-            string myExe = AppInfo.AppExeName;
-
-            Title = string.Format($"{myExe} - {titleVer}");
-            WriteLog.WriteTempFile($"  {myExe} version is {titleVer}");
+            Title = string.Format($"{AppInfo.AppName} - {AppInfo.TitleVersion}");
         }
         #endregion Title version
 
@@ -875,22 +850,22 @@ namespace DailyDocuments
                 if (item.Replace("-", "").Replace("/", "").Equals("automatic", StringComparison.OrdinalIgnoreCase))
                 {
                     btnOpen.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
-                    WriteLog.WriteTempFile($"  Command line argument \"{item}\" found. Opening matched items.");
+                    log.Info($"Command line argument \"{item}\" found. Opening matched items.");
                 }
             }
         }
-        #endregion
+        #endregion Command line arguments
 
-        #region Refresh list
-        private void RefreshEntries()
+        #region Uncheck all check boxes
+        private void UncheckAll()
         {
-            foreach (var entry in entryCollection.Entries)
+            foreach (var entry in EntryClass.Entries)
             {
                 entry.IsChecked = false;
             }
             lbDocs.Items.Refresh();
         }
-        #endregion
+        #endregion Uncheck all check boxes
 
         #region Check for a valid URL
         private static bool IsValidURL(string uriName)
@@ -900,5 +875,109 @@ namespace DailyDocuments
             return Rgx.IsMatch(uriName);
         }
         #endregion
+
+        #region Open the List Maintenance window
+        private void OpenMaintWindow()
+        {
+            UpdateUI maintWindow = new UpdateUI()
+            {
+                Owner = Application.Current.MainWindow
+            };
+            maintWindow.ShowDialog();
+
+            log.Info("List Maintenance complete");
+            log.Info("Refreshing the main window");
+
+            UncheckAll();
+
+            CheckItems(date, totalDays);
+
+            GetIcons();
+
+            lbDocs.Items.Refresh();
+        }
+        #endregion Open the List Maintenance window
+
+        #region Show day codes help message box
+        private void MnuDayCodesHelp_Click(object sender, RoutedEventArgs e)
+        {
+            if (IsWindowInstantiated<TextViewer>())
+                return;
+
+            string msg = Properties.Resources.DayCodesHelp;
+            TextViewer tv = new TextViewer();
+            tv.txtViewer.Text = msg;
+            tv.Title = "DailyDocuments - Day Codes Help";
+            tv.Show();
+        }
+        #endregion Show day codes help message box
+
+        #region Show the About dialog
+        public static void ShowAbout()
+        {
+            About about = new About
+            {
+                Owner = Application.Current.MainWindow,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner
+            };
+            _ = about.ShowDialog();
+        }
+        #endregion Show the About dialog
+
+        #region Check to see if windows is already open
+        public static bool IsWindowInstantiated<T>() where T : Window
+        {
+            var windows = Application.Current.Windows.Cast<Window>();
+            return windows.Any(s => s is T);
+        }
+        #endregion Check to see if windows is already open
+
+        #region Get temp file name
+        public static string GetTempFile()
+        {
+            // Ask NLog what the file name is
+            var target = LogManager.Configuration.FindTargetByName("logFile") as FileTarget;
+            var logEventInfo = new LogEventInfo { TimeStamp = DateTime.Now };
+            return target.FileName.Render(logEventInfo);
+        }
+        #endregion
+
+        #region Color conversions
+        private SolidColorBrush BrushFromHex(string hexColorString)
+        {
+            return (SolidColorBrush)new BrushConverter().ConvertFrom(hexColorString);
+        }
+
+        private string HexFromColor(System.Drawing.Color color)
+        {
+            return string.Format("#{0}{1}{2}{3}",
+                                 color.A.ToString("X2"),
+                                 color.R.ToString("X2"),
+                                 color.G.ToString("X2"),
+                                 color.B.ToString("X2"));
+        }
+
+        private System.Drawing.Color BackgroundToColor(SolidColorBrush brush)
+        {
+            return System.Drawing.Color.FromArgb(brush.Color.A,
+                                  brush.Color.R,
+                                  brush.Color.G,
+                                  brush.Color.B);
+        }
+        #endregion Color conversions
+
+        #region Unhandled Exception Handler
+        private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs args)
+        {
+            log.Error("Unhandled Exception");
+            Exception e = (Exception)args.ExceptionObject;
+            log.Error(e.Message);
+            if (e.InnerException != null)
+            {
+                log.Error(e.InnerException.ToString());
+            }
+            log.Error(e.StackTrace);
+        }
+        #endregion Unhandled Exception Handler
     }
 }

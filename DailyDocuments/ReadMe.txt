@@ -37,25 +37,25 @@ This is a template for an entry in the file:
 	<Entry>
 		<Title></Title>
 		<DocumentPath></DocumentPath>
-		<Frequency>
+		<DayCodes>
 			<Day></Day>
-		</Frequency>
+		</DayCodes>
 	</Entry>
 
 	Place the text that you want to show in the DailyDocuments window between the Title tags.
 	Place the complete path to the document, folder or application between the DocumentPath tags.
 	Place the code for the days you want to have the item pre-checked between the Day tags. You
-	can specify multiple days by having multiple sets of Day tags between a set of Frequency tags.
+	can specify multiple days by having multiple sets of Day tags between a set of DayCodes tags.
 	For example the following will add "Test" which is found at C:\users\Tim\Documents\Important.doc,
 	and select it on Tuesdays and Fridays.
 
 	<Entry>
 		<Title>Test</Title>
 		<DocumentPath>C:\users\Tim\Documents\Important.doc</DocumentPath>
-		<Frequency>
+		<DayCodes>
 			<Day>TU</Day>
 			<Day>FR</Day>
-		</Frequency>
+		</DayCodes>
 	</Entry>
 
 
@@ -91,8 +91,16 @@ month and dd is 1 or 2 digits representing the day. Leading zeros are okay, but 
 The separator can be either the "/" or the "-" character (without the quotes). For example, 11/25
 for the 25th of November.
 
-Note that there isn't any error checking for the day codes. If you specify M45 or Y367, that item
-simply won't be selected.
+Some notes on day codes.
+
+1. Day codes aren't required. If you just want items on the list but don't want them preselected,
+then don't use a day code.
+
+2. It's not necessary to enter them in upper case but they will be converted to upper case when
+the list is saved.
+
+3. There isn't any error checking for the day codes. If you specify M45 or BR549, that item simply
+won't be selected.
 
 
 Preferences
@@ -104,7 +112,7 @@ You can choose to show file type icons.
 
 You can choose to have the DailyDocuments window close after it opens the documents that are selected.
 
-YOu can select the amount of delay between opening successive documents.
+You can select the amount of delay between opening successive documents.
 
 You can choose from three font sizes.
 

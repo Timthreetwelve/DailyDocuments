@@ -22,7 +22,7 @@ namespace DailyDocuments.Properties {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Resources {
+    public class Resources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace DailyDocuments.Properties {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("DailyDocuments.Properties.Resources", typeof(Resources).Assembly);
@@ -51,7 +51,7 @@ namespace DailyDocuments.Properties {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -63,7 +63,7 @@ namespace DailyDocuments.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
         /// </summary>
-        internal static System.Drawing.Icon blank_icon {
+        public static System.Drawing.Icon blank_icon {
             get {
                 object obj = ResourceManager.GetObject("blank_icon", resourceCulture);
                 return ((System.Drawing.Icon)(obj));
@@ -71,9 +71,39 @@ namespace DailyDocuments.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Day Codes
+        ///=========
+        ///
+        ///D1 = Every day
+        ///D2 = Every two days, based on January 1st, 2019
+        ///DA = Every two days, based on January 2nd, 2019
+        ///
+        ///SU = Sunday
+        ///MO = Monday
+        ///TU = Tuesday
+        ///WE = Wednesday
+        ///TH = Thursday
+        ///FR = Friday
+        ///SA = Saturday
+        ///
+        ///M + 1 or 2 digits = Day of the month. Leading zeros are okay, but not required. For example, M12
+        ///for the 12th day of the month.
+        ///
+        ///ML = Last day of the month.
+        ///
+        ///Y + 1 to 3 digits = Day of the year. Leading zeros are okay, but not required. For example, Y100
+        ///for the 10 [rest of string was truncated]&quot;;.
+        /// </summary>
+        public static string DayCodesHelp {
+            get {
+                return ResourceManager.GetString("DayCodesHelp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
         /// </summary>
-        internal static System.Drawing.Icon exe_icon {
+        public static System.Drawing.Icon exe_icon {
             get {
                 object obj = ResourceManager.GetObject("exe_icon", resourceCulture);
                 return ((System.Drawing.Icon)(obj));
@@ -83,7 +113,7 @@ namespace DailyDocuments.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
         /// </summary>
-        internal static System.Drawing.Icon folder_icon {
+        public static System.Drawing.Icon folder_icon {
             get {
                 object obj = ResourceManager.GetObject("folder_icon", resourceCulture);
                 return ((System.Drawing.Icon)(obj));
@@ -93,7 +123,7 @@ namespace DailyDocuments.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
         /// </summary>
-        internal static System.Drawing.Icon globe_icon {
+        public static System.Drawing.Icon globe_icon {
             get {
                 object obj = ResourceManager.GetObject("globe_icon", resourceCulture);
                 return ((System.Drawing.Icon)(obj));
@@ -103,7 +133,7 @@ namespace DailyDocuments.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
         /// </summary>
-        internal static System.Drawing.Icon question_icon {
+        public static System.Drawing.Icon question_icon {
             get {
                 object obj = ResourceManager.GetObject("question_icon", resourceCulture);
                 return ((System.Drawing.Icon)(obj));
