@@ -19,12 +19,17 @@
     WindowStartupLocation="CenterOwner"
     mc:Ignorable="d">
 
+    <!--  Button styling can be found in App.xaml  -->
+
+    <!--#region Resources-->
     <Window.Resources>
         <!--  Convert ItemType into user friendly words  -->
         <local:NConverter x:Key="nconv" />
     </Window.Resources>
+    <!--#endregion-->
 
     <Grid>
+        <!--#region Grid row and column definitions-->
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="10" />
             <ColumnDefinition Width="auto" />
@@ -37,6 +42,9 @@
             <RowDefinition />
             <RowDefinition Height="10" />
         </Grid.RowDefinitions>
+        <!--#endregion-->
+
+        <!--#region Menu-->
         <DockPanel
             Grid.Row="0"
             Grid.Column="0"
@@ -53,7 +61,7 @@
                         </MenuItem.Icon>
                     </MenuItem>
                     <Separator />
-                    <MenuItem Header="Save and Close" Click="Save_Click">
+                    <MenuItem Click="Save_Click" Header="Save and Close">
                         <MenuItem.Icon>
                             <Image Source="MenuIcons/disk--arrow.png" />
                         </MenuItem.Icon>
@@ -66,7 +74,7 @@
                     </MenuItem>
                 </MenuItem>
                 <MenuItem Header="Help">
-                    <MenuItem Header="About" Click="About_Click">
+                    <MenuItem Click="About_Click" Header="About">
                         <MenuItem.Icon>
                             <Image Source="MenuIcons/information-white.png" />
                         </MenuItem.Icon>
@@ -79,19 +87,23 @@
                     </MenuItem>
                 </MenuItem>
             </Menu>
+            <!--#endregion-->
 
+            <!--#region What day indicator-->
             <TextBlock
-            x:Name="tbkWhatDay"
-            Foreground="DimGray"
-            HorizontalAlignment="Right"
-            Width="40"
-            Height="24"
-            Text="DA"
-            Margin="0,5,0,0"
-            FontWeight="SemiBold"
-            FontSize="15">
-            </TextBlock>
+                x:Name="tbkWhatDay"
+                Width="40"
+                Height="24"
+                Margin="0,5,0,0"
+                HorizontalAlignment="Right"
+                FontSize="15"
+                FontWeight="SemiBold"
+                Foreground="DimGray"
+                Text="DA" />
         </DockPanel>
+        <!--#endregion-->
+
+        <!--#region List box on the left side-->
         <DockPanel
             Grid.Row="1"
             Grid.Column="1"
@@ -99,7 +111,7 @@
             <ListBox x:Name="listbox1" BorderBrush="Gray">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <TextBlock FontSize="14" Text="{Binding Title, Converter={StaticResource nconv}}" >
+                        <TextBlock FontSize="14" Text="{Binding Title, Converter={StaticResource nconv}}">
                             <TextBlock.ToolTip>
                                 <ToolTip Content="{Binding DocumentPath}" />
                             </TextBlock.ToolTip>
@@ -108,6 +120,7 @@
                 </ListBox.ItemTemplate>
             </ListBox>
         </DockPanel>
+        <!--#endregion-->
 
         <!--#region GridSplitter-->
         <GridSplitter
@@ -121,6 +134,7 @@
             BorderThickness="0" />
         <!--#endregion-->
 
+        <!--#region Text boxes and buttons on the right side-->
         <Border
             Grid.Row="1"
             Grid.Column="3"
@@ -199,5 +213,6 @@
                 </StackPanel>
             </GroupBox>
         </Border>
+        <!--#endregion-->
     </Grid>
 </Window>

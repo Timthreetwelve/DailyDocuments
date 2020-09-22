@@ -62,14 +62,6 @@ namespace DailyDocuments
             DataContext = EntryClass.Entries;
         }
 
-        private void ConditionalyGetIcons()
-        {
-            if (Properties.Settings.Default.ShowFileIcons)
-            {
-                GetIcons();
-            }
-        }
-
         #region Read Settings
         private void ReadSettings()
         {
@@ -255,6 +247,16 @@ namespace DailyDocuments
             }
         }
         #endregion Read the JSON file
+
+        #region Get file icons if needed
+        private void ConditionalyGetIcons()
+        {
+            if (Properties.Settings.Default.ShowFileIcons)
+            {
+                GetIcons();
+            }
+        }
+        #endregion Get file icons if needed
 
         #region Get file icons
         private void GetIcons()
@@ -977,6 +979,12 @@ namespace DailyDocuments
                 log.Error(e.InnerException.ToString());
             }
             log.Error(e.StackTrace);
+
+            System.Windows.MessageBox.Show("An Unhandled Exception has occurred.\n" +
+                                          $"See {GetTempFile()} for more information.",
+                                          "DailyDocuments Error",
+                                          MessageBoxButton.OK,
+                                          MessageBoxImage.Error);
         }
         #endregion Unhandled Exception Handler
     }
