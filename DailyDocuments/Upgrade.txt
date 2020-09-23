@@ -1,0 +1,7 @@
+If you are upgrading from a previous version of DailyDocuments, please read the following:
+
+This version of DailyDocuments includes a new List Maintenance window and uses a different file format to save the list items. 
+
+Due to these changes you will need to reenter your list through the List Maintenance window.
+
+Sorry for any inconvenience this may cause.

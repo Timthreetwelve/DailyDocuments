@@ -1,4 +1,4 @@
-﻿// Copyright (c) TIm Kennedy. All Rights Reserved. Licensed under the MIT License.
+﻿// Copyright (c) Tim Kennedy. All Rights Reserved. Licensed under the MIT License.
 
 #region using directives
 using System.Collections.ObjectModel;
@@ -12,14 +12,13 @@ using System.Windows.Input;
 using Newtonsoft.Json;
 using NLog;
 using TKUtils;
+using MessageBox = Xceed.Wpf.Toolkit.MessageBox;
 #endregion using directives
 
 namespace DailyDocuments
 {
     public partial class UpdateUI : Window
     {
-        public bool entriesChanged;
-
         #region NLog
         private static readonly Logger log = LogManager.GetCurrentClassLogger();
         #endregion NLog
@@ -36,9 +35,12 @@ namespace DailyDocuments
         #region Load the list box
         private void LoadListBox()
         {
-            listbox1.ItemsSource = EntryClass.Entries;
-            listbox1.SelectedItem = EntryClass.Entries.First();
-            _ = listbox1.Focus();
+            if (EntryClass.Entries.Count > 0)
+            {
+                listbox1.ItemsSource = EntryClass.Entries;
+                listbox1.SelectedItem = EntryClass.Entries.First();
+                _ = listbox1.Focus();
+            }
         }
         #endregion Load the list box
 
@@ -58,8 +60,38 @@ namespace DailyDocuments
         }
         #endregion Determine if it's a D2 or DA day
 
+        #region Check for "untitled" entries in the list box
+        private bool CheckForUntitled()
+        {
+            // Loop through the list backwards checking for null titles
+            for (int i = listbox1.Items.Count - 1; i >= 0; i--)
+            {
+                object item = listbox1.Items[i];
+                EntryClass x = item as EntryClass;
+                if (string.IsNullOrEmpty(x.Title))
+                {
+                    log.Error("New item prohibited, \"untitled\" entry in list");
+                    _ = MessageBox.Show("Please update or delete the untitled entry before adding another new entry.",
+                                    "DailyDocuments List Maintenance Error",
+                                    MessageBoxButton.OK,
+                                    MessageBoxImage.Exclamation);
+                    return false;
+                }
+            }
+            return true;
+        }
+        #endregion Check for "untitled" entries in the list box
+
         #region New item
         private void New_Click(object sender, RoutedEventArgs e)
+        {
+            if (CheckForUntitled())
+            {
+                NewItem();
+            }
+        }
+
+        private void NewItem()
         {
             tb1.Text = string.Empty;
             tb2.Text = string.Empty;
@@ -121,6 +153,16 @@ namespace DailyDocuments
         #region Window Closing
         private void Window_Closing(object sender, CancelEventArgs e)
         {
+            for (int i = EntryClass.Entries.Count - 1; i >= 0; i--)
+            {
+                object item = listbox1.Items[i];
+                EntryClass x = item as EntryClass;
+                if (string.IsNullOrEmpty(x.Title))
+                {
+                    _ = EntryClass.Entries.Remove(x);
+                    log.Info("Removing null entry");
+                }
+            }
         }
         #endregion Window Closing
 

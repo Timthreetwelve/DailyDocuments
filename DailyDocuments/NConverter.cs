@@ -1,4 +1,4 @@
-﻿// Copyright (c) TIm Kennedy. All Rights Reserved. Licensed under the MIT License.
+﻿// Copyright (c) Tim Kennedy. All Rights Reserved. Licensed under the MIT License.
 
 using System;
 using System.Globalization;
@@ -10,6 +10,10 @@ namespace DailyDocuments
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
+            if (value == null)
+            {
+                return "untitled";
+            }
             return string.IsNullOrEmpty(value.ToString()) ? "untitled" : value;
         }
 
