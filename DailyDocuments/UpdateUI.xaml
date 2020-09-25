@@ -3,12 +3,12 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:dd="clr-namespace:GongSolutions.Wpf.DragDrop;assembly=GongSolutions.Wpf.DragDrop"
     xmlns:local="clr-namespace:DailyDocuments"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:props="clr-namespace:DailyDocuments.Properties"
     xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
     Title="DailyDocuments - List Maintenance"
-    Width="600"
+    Width="700"
     Height="350"
     MinWidth="640"
     MinHeight="330"
@@ -23,7 +23,6 @@
 
     <!--#region Resources-->
     <Window.Resources>
-        <!--  Convert ItemType into user friendly words  -->
         <local:NConverter x:Key="nconv" />
     </Window.Resources>
     <!--#endregion-->
@@ -53,8 +52,8 @@
                 Margin="6,0,0,0"
                 VerticalAlignment="Center"
                 Background="#e6e7e8"
-                IsTabStop="False"
-                FontSize="14">
+                FontSize="14"
+                IsTabStop="False">
                 <MenuItem Header="File">
                     <MenuItem Click="MnuSave_Click" Header="Save">
                         <MenuItem.Icon>
@@ -109,10 +108,16 @@
             Grid.Row="1"
             Grid.Column="1"
             MinWidth="100">
-            <ListBox x:Name="listbox1" BorderBrush="Gray" >
+            <ListBox
+                x:Name="listbox1"
+                dd:DragDrop.IsDragSource="True"
+                dd:DragDrop.IsDropTarget="True"
+                dd:DragDrop.UseDefaultEffectDataTemplate="True"
+                AllowDrop="True"
+                BorderBrush="Gray">
                 <ListBox.ItemContainerStyle>
                     <Style TargetType="ListBoxItem">
-                        <Setter Property="IsTabStop" Value="False"/>
+                        <Setter Property="IsTabStop" Value="False" />
                     </Style>
                 </ListBox.ItemContainerStyle>
                 <ListBox.ItemTemplate>
@@ -134,11 +139,11 @@
             Grid.Column="2"
             Width="2"
             Margin="0,0"
-            IsTabStop="False"
             HorizontalAlignment="Stretch"
             VerticalAlignment="Stretch"
             Background="SteelBlue"
-            BorderThickness="0" />
+            BorderThickness="0"
+            IsTabStop="False" />
         <!--#endregion-->
 
         <!--#region Text boxes and buttons on the right side-->
@@ -164,6 +169,7 @@
                         VerticalContentAlignment="Center"
                         TabIndex="0"
                         Text="{Binding Title}"
+                        ToolTip="Enter the text you want to see in the list"
                         Watermark="Enter the text you want to see in the list" />
                     <TextBlock
                         Margin="0,10,0,0"
@@ -175,9 +181,11 @@
                     <xctk:WatermarkTextBox
                         x:Name="tb2"
                         Height="30"
+                        Margin="0,0,25,0"
                         VerticalContentAlignment="Center"
                         TabIndex="1"
                         Text="{Binding DocumentPath}"
+                        ToolTip="Enter the complete path to the document, application, or URL"
                         Watermark="Enter the complete path to the document, application, or URL" />
                     <TextBlock
                         Margin="0,10,0,0"
@@ -190,10 +198,26 @@
                         x:Name="tb3"
                         Height="30"
                         VerticalContentAlignment="Center"
-                        TabIndex="2"
+                        LostFocus="Tb3_LostFocus"
+                        TabIndex="3"
                         Text="{Binding DayCodes}"
+                        TextChanged="Tb3_TextChanged"
                         ToolTip="Comma separated list of day codes"
                         Watermark="Enter a comma separated list of Day Codes or leave blank" />
+                    <Button
+                        x:Name="btnFilePicker"
+                        Grid.Row="1"
+                        Grid.Column="3"
+                        Width="25"
+                        Height="30"
+                        Margin="0,-156,0,0"
+                        HorizontalAlignment="Right"
+                        BorderBrush="Gray"
+                        BorderThickness="0,1,1,1"
+                        Click="BtnFilePicker_Click"
+                        Content="..."
+                        TabIndex="2"
+                        ToolTip="Click to browse for a file" />
                     <StackPanel
                         Margin="0,10"
                         HorizontalAlignment="Center"
@@ -204,24 +228,27 @@
                             Margin="10"
                             Click="Save_Click"
                             Content="Save &amp; Close"
-                            TabIndex="3"
-                            Style="{DynamicResource RoundCornerBlue}" />
+                            Style="{DynamicResource RoundCornerBlue}"
+                            TabIndex="4"
+                            ToolTip="Save any changes and close this window" />
                         <Button
                             Width="100"
                             Height="30"
                             Margin="10"
                             Click="New_Click"
                             Content="New Item"
-                            TabIndex="4"
-                            Style="{DynamicResource RoundCornerGreen}" />
+                            Style="{DynamicResource RoundCornerGreen}"
+                            TabIndex="5"
+                            ToolTip="Add a new item to the bottom of the list" />
                         <Button
                             Width="100"
                             Height="30"
                             Margin="10"
                             Click="Delete_Click"
                             Content="Delete Item"
-                            TabIndex="5"
-                            Style="{DynamicResource RoundCornerRed}" />
+                            Style="{DynamicResource RoundCornerRed}"
+                            TabIndex="6"
+                            ToolTip="Delete the currently selected list item" />
                     </StackPanel>
                 </StackPanel>
             </GroupBox>

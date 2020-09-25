@@ -1,14 +1,17 @@
 ﻿// Copyright (c) Tim Kennedy. All Rights Reserved. Licensed under the MIT License.
 
 #region using directives
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Media;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Microsoft.Win32;
 using Newtonsoft.Json;
 using NLog;
 using TKUtils;
@@ -83,14 +86,6 @@ namespace DailyDocuments
         #endregion Check for "untitled" entries in the list box
 
         #region New item
-        private void New_Click(object sender, RoutedEventArgs e)
-        {
-            if (CheckForUntitled())
-            {
-                NewItem();
-            }
-        }
-
         private void NewItem()
         {
             tb1.Text = string.Empty;
@@ -100,7 +95,7 @@ namespace DailyDocuments
             EntryClass.Entries.Add(newitem);
             listbox1.SelectedItem = EntryClass.Entries.Last();
             listbox1.ScrollIntoView(listbox1.SelectedItem);
-            _ = listbox1.Focus();
+            _ = tb1.Focus();
         }
         #endregion New item
 
@@ -167,6 +162,14 @@ namespace DailyDocuments
         #endregion Window Closing
 
         #region Button events
+        private void New_Click(object sender, RoutedEventArgs e)
+        {
+            if (CheckForUntitled())
+            {
+                NewItem();
+            }
+        }
+
         private void Delete_Click(object sender, RoutedEventArgs e)
         {
             EntryClass.Entries.Remove((EntryClass)listbox1.SelectedItem);
@@ -175,6 +178,29 @@ namespace DailyDocuments
         {
             SaveJson();
             Close();
+        }
+
+        private void BtnFilePicker_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog dlgOpen = new OpenFileDialog
+            {
+                Title = "Choose a File",
+                Multiselect = false,
+                CheckFileExists = false,
+                CheckPathExists = true,
+            };
+            if (!string.IsNullOrEmpty(tb2.Text) && File.Exists(tb2.Text.Trim()))
+            {
+                dlgOpen.FileName = tb2.Text;
+            }
+            bool? result = dlgOpen.ShowDialog();
+            if (result == true)
+            {
+                tb2.Text = dlgOpen.FileName;
+                EntryClass entry = (EntryClass)listbox1.SelectedItem;
+                entry.DocumentPath = tb2.Text;
+                _ = tb3.Focus();
+            }
         }
         #endregion Button events
 
@@ -228,6 +254,43 @@ namespace DailyDocuments
             var windows = Application.Current.Windows.Cast<Window>();
             return windows.Any(s => s is T);
         }
+
         #endregion Is day codes help window already open?
+
+        #region Text in textbox changed event
+        private void Tb3_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            var textboxSender = (TextBox)sender;
+            var cursorPosition = textboxSender.SelectionStart;
+            textboxSender.Text = Regex.Replace(textboxSender.Text, "[^0-9a-zA-Z ,/-]", "");
+            textboxSender.SelectionStart = cursorPosition;
+        }
+        #endregion Text in textbox changed event
+
+        #region Textbox lost focus event
+        private void Tb3_LostFocus(object sender, RoutedEventArgs e)
+        {
+            EntryClass entry = (EntryClass)listbox1.SelectedItem;
+            entry.DayCodes = InsertCommas(tb3.Text);
+        }
+        #endregion Textbox lost focus event
+
+        #region Insert commas in day codes field
+        private static string InsertCommas(string str)
+        {
+            if (str?.Contains(' ') != true)
+            {
+                return str;
+            }
+            else
+            {
+                List<string> chunks = str.Split(new char[] { ' ', ',' })
+                    .Select(s => s.Trim())
+                    .Where(s => !string.IsNullOrWhiteSpace(s.Trim()))
+                    .ToList();
+                return string.Join(", ", chunks);
+            }
+        }
+        #endregion Insert commas in day codes field
     }
 }

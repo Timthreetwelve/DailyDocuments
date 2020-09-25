@@ -43,6 +43,8 @@ item in the list, the text boxes on the right side of the window are populated w
 of that list item. To update an item, simply make any changes in the appropriate text box and then
 press the tab key or the enter key.
 
+To arrange list items, simply drag an entry to a new position in the list.
+
 To delete an item from the list, highlight that item in the list on the left side of the window and
 then click the Delete Item button.
 
@@ -56,10 +58,12 @@ window. It can say anything you want, perhaps Aunt Sally's Secret Buttermilk Bis
 The Path to Document text box is where you will enter the complete path to the file, folder
 application, or website URL that you wish to open. For documents, folders and applications, you
 may use environmental variables in the path. For example %temp% for the temp folder. For website
-URLs, begin the URL with either https:\\ or http:\\. Refer to the examples.
+URLs, begin the URL with either https:\\ or http:\\.
 
 The Day Codes text box is where you will enter the codes that will determine on which days the
-items will be selected. The next section describes the individual day codes.
+items will be selected. The next section describes the individual day codes. This text box will
+only accept alphanumeric, space, comma, dash (-) and forward slash (/) characters. It will also
+attempt to insert commas where needed. All alphabetic characters will be converted to uppercase.
 
 At the top right, above the text boxes, is an indicator that shows either "D2" or "DA". As you
 will see in the next section, D2 and DA are the day codes for "every two days". This indicator
@@ -67,7 +71,7 @@ shows if the current day is a D2 day or a DA day, saving you from counting days 
 There are a couple of key things to know about day codes, 1. you don't have to use them and,
 2. if you do, separate multiple day codes with commas.
 
-When you have finish updating the list, click the Save & Close button. There are also options on
+When you have finished updating the list, click the Save & Close button. There are also options on
 the File menu to save without closing, save and close and to close without saving.
 
 
@@ -98,25 +102,20 @@ Y + 1 to 3 digits = Day of the year. Leading zeros are okay, but not required. F
 for the 100th day of the year.
 
 EVEN = Any day of the month that is evenly divisible by 2.
-ODD = Days that are not considered even.
+ODD = Days that are not considered EVEN.
 
-And finally, any specific date expressed as mm/dd where mm is 1 or 2 digits representing the
-month and dd is 1 or 2 digits representing the day. Leading zeros are okay, but not required.
-The separator can be either the "/" or the "-" character (without the quotes). For example, 11/25
-for the 25th of November.
+And finally, any specific date expressed as mm/dd where mm is 1 or 2 digits representing the month
+and dd is 1 or 2 digits representing the day. Leading zeros are okay, but not required. The
+separator can be either the "/" or the "-" character (without the quotes). For example, 02/06 or
+2/6 for the 6th of February.
 
 Some notes on day codes.
 
 1. Day codes aren't required. If you just want items on the list but don't want them preselected,
 then don't use a day code.
 
-2. It's not necessary to enter them in upper case but they will be converted to upper case when
-the list is saved.
-
-3. There isn't any error checking for the day codes. If you specify M45 or BR549, that item simply
+2. There isn't any error checking for the day codes. If you specify M45 or BR549, that item simply
 won't be selected.
-
-4. Most importantly, separate multiple day codes with commas.
 
 
 Preferences
@@ -163,6 +162,8 @@ Json.net v12.0.3 from Newtonsoft https://www.newtonsoft.com/json
 NLog v4.7.4 https://nlog-project.org/
 
 Extended WPF Toolkit v3.8.1 from Xceed Software Inc. https://github.com/xceedsoftware/wpftoolkit
+
+GongSolutions.WPF.DragDrop v2.2.0 https://github.com/punker76/gong-wpf-dragdrop
 
 
 MIT License
