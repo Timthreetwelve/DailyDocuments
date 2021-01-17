@@ -159,11 +159,11 @@ Fugue Icons set https://p.yusukekamiyamane.com/
 
 Json.net v12.0.3 from Newtonsoft https://www.newtonsoft.com/json
 
-NLog v4.7.4 https://nlog-project.org/
+NLog v4.7.6 https://nlog-project.org/
 
-Extended WPF Toolkit v3.8.1 from Xceed Software Inc. https://github.com/xceedsoftware/wpftoolkit
+Extended WPF Toolkit v4.0.2 from Xceed Software Inc. https://github.com/xceedsoftware/wpftoolkit
 
-GongSolutions.WPF.DragDrop v2.2.0 https://github.com/punker76/gong-wpf-dragdrop
+GongSolutions.WPF.DragDrop v2.3.2 https://github.com/punker76/gong-wpf-dragdrop
 
 
 MIT License
