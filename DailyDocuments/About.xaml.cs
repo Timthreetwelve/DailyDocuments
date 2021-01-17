@@ -1,4 +1,6 @@
-﻿using System.Windows;
+﻿// Copyright (c) Tim Kennedy. All Rights Reserved. Licensed under the MIT License.
+
+using System.Windows;
 using System.Windows.Input;
 using System.Diagnostics;
 using System.Reflection;
@@ -18,7 +20,7 @@ namespace DailyDocuments
 
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            this.Close();
+            Close();
         }
 
         private void OnNavigate(object sender, RequestNavigateEventArgs e)
@@ -35,16 +37,16 @@ namespace DailyDocuments
             string copyright = versionInfo.LegalCopyright;
             string product = versionInfo.ProductName;
 
-            this.tbVersion.Text = version.Remove(version.LastIndexOf("."));
-            this.tbCopyright.Text = copyright.Replace("Copyright ", "");
-            this.Title = $"About {product}";
-            this.Topmost = true;
+            tbVersion.Text = version.Remove(version.LastIndexOf("."));
+            tbCopyright.Text = copyright.Replace("Copyright ", "");
+            Title = $"About {product}";
+            Topmost = true;
         }
 
         private void Hyperlink_Click(object sender, RoutedEventArgs e)
         {
-            this.Topmost = false;
-            this.Close();
+            Topmost = false;
+            Close();
             _ = Process.Start(".\\ReadMe.txt");
         }
     }

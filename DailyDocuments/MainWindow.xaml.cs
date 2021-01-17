@@ -3,12 +3,13 @@
 #region Using directives
 using System;
 using System.Collections.ObjectModel;
-using System.Configuration;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Media;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -45,6 +46,8 @@ namespace DailyDocuments
 
         public MainWindow()
         {
+            UserSettings.Init(UserSettings.AppFolder, UserSettings.DefaultFilename, true);
+
             InitializeComponent();
 
             ReadSettings();
@@ -77,29 +80,20 @@ namespace DailyDocuments
             log.Info($"{AppInfo.AppName} {AppInfo.TitleVersion} is starting up");
 
             // Handle changes to settings
-            Properties.Settings.Default.SettingChanging += SettingChanging;
-
-            // Settings upgrade if needed
-            if (Properties.Settings.Default.SettingsUpgradeRequired)
-            {
-                Properties.Settings.Default.Upgrade();
-                Properties.Settings.Default.SettingsUpgradeRequired = false;
-                Properties.Settings.Default.Save();
-                CleanUp.CleanupPrevSettings();
-            }
+            UserSettings.Setting.PropertyChanged += UserSettingChanged;
 
             // Window position
-            Top = Properties.Settings.Default.WindowTop;
-            Left = Properties.Settings.Default.WindowLeft;
-            Height = Properties.Settings.Default.WindowHeight;
-            Width = Properties.Settings.Default.WindowWidth;
+            Top = UserSettings.Setting.WindowTop;
+            Left = UserSettings.Setting.WindowLeft;
+            Height = UserSettings.Setting.WindowHeight;
+            Width = UserSettings.Setting.WindowWidth;
 
             // Topmost
-            Topmost = Properties.Settings.Default.Topmost;
-            log.Debug($"Window Topmost is {Properties.Settings.Default.Topmost}");
+            Topmost = UserSettings.Setting.Topmost;
+            log.Debug($"Window Topmost is {UserSettings.Setting.Topmost}");
 
             // Open delay
-            openDelay = Properties.Settings.Default.OpenDelay;
+            openDelay = UserSettings.Setting.OpenDelay;
             switch (openDelay)
             {
                 case 250:
@@ -121,11 +115,11 @@ namespace DailyDocuments
             log.Debug($"Open delay is {openDelay} ms");
 
             // Exit on open
-            mnuExitOpen.IsChecked = Properties.Settings.Default.ExitOnOpen;
-            log.Debug($"Exit on open is {Properties.Settings.Default.ExitOnOpen}");
+            mnuExitOpen.IsChecked = UserSettings.Setting.ExitOnOpen;
+            log.Debug($"Exit on open is {UserSettings.Setting.ExitOnOpen}");
 
             // Font size
-            lbDocs.FontSize = Properties.Settings.Default.FontSize;
+            lbDocs.FontSize = UserSettings.Setting.FontSize;
             switch (lbDocs.FontSize)
             {
                 case 13:
@@ -149,11 +143,11 @@ namespace DailyDocuments
             }
 
             // Show file type icons
-            mnuShowIcons.IsChecked = Properties.Settings.Default.ShowFileIcons;
-            log.Debug($"Show file type icons {Properties.Settings.Default.ExitOnOpen}");
+            mnuShowIcons.IsChecked = UserSettings.Setting.ShowFileIcons;
+            log.Debug($"Show file type icons {UserSettings.Setting.ExitOnOpen}");
 
             // Background color
-            string bg = Properties.Settings.Default.BGColor;
+            string bg = UserSettings.Setting.BGColor;
             lbDocs.Background = BrushFromHex(bg);
 
             // App name and version in the title
@@ -251,7 +245,7 @@ namespace DailyDocuments
         #region Get file icons if needed
         private void ConditionalyGetIcons()
         {
-            if (Properties.Settings.Default.ShowFileIcons)
+            if (UserSettings.Setting.ShowFileIcons)
             {
                 GetIcons();
             }
@@ -517,7 +511,7 @@ namespace DailyDocuments
                     LaunchDocument(item);
                 }
             }
-            if (Properties.Settings.Default.ExitOnOpen)
+            if (UserSettings.Setting.ExitOnOpen)
             {
                 Application.Current.Shutdown();
             }
@@ -557,13 +551,13 @@ namespace DailyDocuments
         #region Window events
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            Properties.Settings.Default.WindowLeft = Left;
-            Properties.Settings.Default.WindowTop = Top;
-            Properties.Settings.Default.WindowHeight = Height;
-            Properties.Settings.Default.WindowWidth = Width;
+            UserSettings.Setting.WindowLeft = Left;
+            UserSettings.Setting.WindowTop = Top;
+            UserSettings.Setting.WindowHeight = Height;
+            UserSettings.Setting.WindowWidth = Width;
 
-            // save the property settings
-            Properties.Settings.Default.Save();
+            // save the settings
+            UserSettings.SaveSettings();
 
             log.Info("DailyDocuments is shutting down");
 
@@ -585,7 +579,7 @@ namespace DailyDocuments
                 CheckItems(date, totalDays);
             }
         }
-        #endregion
+        #endregion DatePicker changed events
 
         #region Menu events
         private void MnuExit_Click(object sender, RoutedEventArgs e)
@@ -600,33 +594,33 @@ namespace DailyDocuments
 
         private void MnuFontS_Checked(object sender, RoutedEventArgs e)
         {
-            Properties.Settings.Default.FontSize = 13;
+            UserSettings.Setting.FontSize = 13;
             mnuFontM.IsChecked = false;
             mnuFontL.IsChecked = false;
         }
 
         private void MnuFontM_Checked(object sender, RoutedEventArgs e)
         {
-            Properties.Settings.Default.FontSize = 15;
+            UserSettings.Setting.FontSize = 15;
             mnuFontS.IsChecked = false;
             mnuFontL.IsChecked = false;
         }
 
         private void MnuFontL_Checked(object sender, RoutedEventArgs e)
         {
-            Properties.Settings.Default.FontSize = 17;
+            UserSettings.Setting.FontSize = 17;
             mnuFontS.IsChecked = false;
             mnuFontM.IsChecked = false;
         }
 
         private void MnuExitOpen_Checked(object sender, RoutedEventArgs e)
         {
-            Properties.Settings.Default.ExitOnOpen = true;
+            UserSettings.Setting.ExitOnOpen = true;
         }
 
         private void MnuExitOpen_Unchecked(object sender, RoutedEventArgs e)
         {
-            Properties.Settings.Default.ExitOnOpen = false;
+            UserSettings.Setting.ExitOnOpen = false;
         }
 
         private void MnuAbout_Click(object sender, RoutedEventArgs e)
@@ -646,21 +640,21 @@ namespace DailyDocuments
 
         private void MnuDelay25_Checked(object sender, RoutedEventArgs e)
         {
-            Properties.Settings.Default.OpenDelay = 250;
+            UserSettings.Setting.OpenDelay = 250;
             mnuDelay50.IsChecked = false;
             mnuDelay1.IsChecked = false;
         }
 
         private void MnuDelay50_Checked(object sender, RoutedEventArgs e)
         {
-            Properties.Settings.Default.OpenDelay = 500;
+            UserSettings.Setting.OpenDelay = 500;
             mnuDelay25.IsChecked = false;
             mnuDelay1.IsChecked = false;
         }
 
         private void MnuDelay1_Checked(object sender, RoutedEventArgs e)
         {
-            Properties.Settings.Default.OpenDelay = 1000;
+            UserSettings.Setting.OpenDelay = 1000;
             mnuDelay25.IsChecked = false;
             mnuDelay50.IsChecked = false;
         }
@@ -686,7 +680,7 @@ namespace DailyDocuments
             if (result == System.Windows.Forms.DialogResult.OK)
             {
                 lbDocs.Background = BrushFromHex(HexFromColor(cd.Color));
-                Properties.Settings.Default.BGColor = HexFromColor(cd.Color);
+                UserSettings.Setting.BGColor = HexFromColor(cd.Color);
             }
         }
 
@@ -751,52 +745,36 @@ namespace DailyDocuments
         }
         #endregion Mouse events
 
-        #region Setting changed events
-        private void SettingChanging(object sender, SettingChangingEventArgs e)
+        #region Setting change
+        private void UserSettingChanged(object sender, PropertyChangedEventArgs e)
         {
-            switch (e.SettingName)
+            PropertyInfo prop = sender.GetType().GetProperty(e.PropertyName);
+            var newValue = prop?.GetValue(sender, null);
+            switch (e.PropertyName)
             {
                 case "FontSize":
-                    {
-                        log.Debug($"{e.SettingName} {e.NewValue}");
-                        lbDocs.FontSize = (double)e.NewValue;
-                        break;
-                    }
+                    lbDocs.FontSize = (double)newValue;
+                    break;
+
                 case "Topmost":
-                    {
-                        log.Debug($"{e.SettingName} {e.NewValue}");
-                        Topmost = (bool)e.NewValue;
-                        break;
-                    }
-                case "ExitOnOpen":
-                    {
-                        log.Debug($"{e.SettingName} {e.NewValue}");
-                        break;
-                    }
+                    Topmost = (bool)newValue;
+                    break;
+
                 case "OpenDelay":
-                    {
-                        log.Debug($"{e.SettingName} {e.NewValue}");
-                        openDelay = (int)e.NewValue;
-                        break;
-                    }
+                    openDelay = (int)newValue;
+                    break;
+
                 case "ShowFileIcons":
+                    if (IsLoaded && (bool)newValue)
                     {
-                        if (IsLoaded && (bool)e.NewValue)
-                        {
-                            GetIcons();
-                            lbDocs.Items.Refresh();
-                        }
-                        log.Debug($"{e.SettingName} {e.NewValue}");
-                        break;
+                        GetIcons();
+                        lbDocs.Items.Refresh();
                     }
-                case "BGColor":
-                    {
-                        log.Debug($"{e.SettingName} {e.NewValue}");
-                        break;
-                    }
+                    break;
             }
+            log.Debug($"***Setting change: {e.PropertyName} New Value: {newValue}");
         }
-        #endregion Setting changed events
+        #endregion Setting change
 
         #region Keyboard events
         private void Window_KeyUp(object sender, KeyEventArgs e)
@@ -841,7 +819,7 @@ namespace DailyDocuments
         /// <returns></returns>
         [DllImport("shlwapi.dll", CharSet = CharSet.Auto, SetLastError = false)]
         private static extern bool PathFindOnPath([In, Out] StringBuilder pszFile, [In] string[] ppszOtherDirs);
-        #endregion
+        #endregion Find on path
 
         #region Command line arguments
         private void ProcessCommandLine()
@@ -876,7 +854,7 @@ namespace DailyDocuments
             Regex Rgx = new Regex(Pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
             return Rgx.IsMatch(uriName);
         }
-        #endregion
+        #endregion Check for a valid URL
 
         #region Open the List Maintenance window
         private void OpenMaintWindow()
@@ -942,7 +920,7 @@ namespace DailyDocuments
             var logEventInfo = new LogEventInfo { TimeStamp = DateTime.Now };
             return target.FileName.Render(logEventInfo);
         }
-        #endregion
+        #endregion Get temp file name
 
         #region Color conversions
         private SolidColorBrush BrushFromHex(string hexColorString)

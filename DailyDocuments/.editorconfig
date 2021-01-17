@@ -6,3 +6,6 @@ root = true
 indent_style = space
 
 file_header_template = Copyright (c) Tim Kennedy. All Rights Reserved. Licensed under the MIT License.
+
+# RCS1158: Static member in generic type should use a type parameter.
+dotnet_diagnostic.RCS1158.severity = none

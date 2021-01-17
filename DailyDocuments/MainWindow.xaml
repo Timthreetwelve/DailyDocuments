@@ -2,13 +2,14 @@
     x:Class="DailyDocuments.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:Properties="clr-namespace:DailyDocuments.Properties"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:DailyDocuments"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
     Title="Daily Documents"
     MinWidth="320"
     MinHeight="200"
+    d:DataContext="{d:DesignInstance Type=local:UserSettings}"
     d:DesignHeight="200"
     d:DesignWidth="300"
     Background="#e6e7e8"
@@ -79,13 +80,13 @@
                             x:Name="mnuOnTop"
                             Header="Always on top"
                             IsCheckable="True"
-                            IsChecked="{Binding Topmost, Source={x:Static Properties:Settings.Default}}"
+                            IsChecked="{Binding Topmost, Source={x:Static local:UserSettings.Setting}}"
                             StaysOpenOnClick="True" />
                         <MenuItem
                             x:Name="mnuShowIcons"
                             Header="Show File Type Icons"
                             IsCheckable="True"
-                            IsChecked="{Binding ShowFileIcons, Source={x:Static Properties:Settings.Default}}"
+                            IsChecked="{Binding ShowFileIcons, Source={x:Static local:UserSettings.Setting}}"
                             StaysOpenOnClick="True" />
                         <MenuItem
                             Name="mnuExitOpen"
@@ -253,7 +254,7 @@
                             Width="20"
                             Margin="0,0,5,0"
                             Source="{Binding FileIcon}"
-                            Visibility="{Binding ShowFileIcons, Source={x:Static Properties:Settings.Default}, Converter={StaticResource BoolVisConverter}}" />
+                            Visibility="{Binding ShowFileIcons, Source={x:Static local:UserSettings.Setting}, Converter={StaticResource BoolVisConverter}}" />
                         <TextBlock Text="{Binding Title}">
                             <ToolTipService.ToolTip>
                                 <TextBlock>

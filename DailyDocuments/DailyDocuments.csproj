@@ -81,7 +81,6 @@
       <DependentUpon>About.xaml</DependentUpon>
     </Compile>
     <Compile Include="AppInfo.cs" />
-    <Compile Include="CleanUp.cs" />
     <Compile Include="EntryClass.cs" />
     <Compile Include="NConverter.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
@@ -89,6 +88,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="SettingsManager.cs" />
     <Compile Include="TextFileViewer.cs" />
     <Compile Include="TextViewer.xaml.cs">
       <DependentUpon>TextViewer.xaml</DependentUpon>
@@ -96,6 +96,7 @@
     <Compile Include="UpdateUI.xaml.cs">
       <DependentUpon>UpdateUI.xaml</DependentUpon>
     </Compile>
+    <Compile Include="UserSettings.cs" />
     <Page Include="About.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -124,11 +125,6 @@
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Properties\Settings.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Settings.settings</DependentUpon>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <Resource Include="Upgrade.txt" />
     <EmbeddedResource Include="Properties\Resources.resx">
@@ -162,10 +158,6 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="packages.config" />
-    <None Include="Properties\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
-    </None>
     <Resource Include="Resources\globe.ico" />
     <None Include="Resources\DayCodesHelp.txt" />
     <Content Include="Sample.docx">
@@ -174,9 +166,6 @@
     <Content Include="Sample.xlsx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\question.ico" />
